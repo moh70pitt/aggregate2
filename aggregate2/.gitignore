@@ -1,0 +1,7 @@
+/build/
+.project
+.settings
+.classpath
+.metadata
+.DS_Store
+aggregate2/WebContent/WEB-INF/classes
