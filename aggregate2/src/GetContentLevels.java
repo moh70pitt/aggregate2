@@ -144,6 +144,15 @@ public class GetContentLevels extends HttpServlet {
 //                aggregate.sequenceContent();
 //                if(verbose) System.out.println("Sequencing               " + (Calendar.getInstance().getTimeInMillis()-time1));
 //            }
+            
+            //The following lines are added to get the result of the last activity
+            String attemptsResSeq = aggregate.userContentSequences.get(last_content_id);
+            if (attemptsResSeq != null && attemptsResSeq.isEmpty() == false)
+            {
+            	String[] attmps = attemptsResSeq.split(",");
+            	last_content_res = attmps[attmps.length-1];//the last attempt in the sequence
+            }
+            
             if(cm.agg_proactiverec_enabled || cm.agg_reactiverec_enabled){
 	            time1 = Calendar.getInstance().getTimeInMillis();
 	            aggregate.fillRecommendations(last_content_id, last_content_res, number_recommendation);
