@@ -1,7 +1,6 @@
 
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -14,7 +13,6 @@ import java.util.HashMap;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 public class PAWSRecInterface implements RecInterface {
@@ -31,7 +29,8 @@ public class PAWSRecInterface implements RecInterface {
             String lastContentResult, String lastContentProvider,
             HashMap<String, String[]> contentList, int maxReactiveRec,int maxProactiveRec,
             double reactiveRecThreshold, double proactiveRecThreshold, 
-            String reactiveRecMethod, String proactiveRecMethod) {
+            String reactiveRecMethod, String proactiveRecMethod,
+            HashMap<String, ArrayList<String>[]> topicContent) {
 		
 		ArrayList<ArrayList<String[]>> result = new ArrayList<ArrayList<String[]>>();
 		ArrayList<String[]> reactive_list = new ArrayList<String[]>();
@@ -58,6 +57,7 @@ public class PAWSRecInterface implements RecInterface {
             if(reactiveRecMethod != null && reactiveRecMethod.length()>0) method.addParameter("reactive_method", reactiveRecMethod);
             if(proactiveRecMethod != null && proactiveRecMethod.length()>0) method.addParameter("proactive_method", proactiveRecMethod);
             method.addParameter("contents", getContents(contentList));
+            method.addParameter("topicContents",getTopicContentText(topicContent));
             if (verbose) System.out.println("RECOMENDATION CALL:");
             if (verbose) System.out.println(method.getURI().toString()+"\n"+method.getRequestBodyAsString());  
             
@@ -167,6 +167,23 @@ public class PAWSRecInterface implements RecInterface {
 		return contents;
 	}
 
+	/*
+	 * @returns string representation of topic-contents. Sample format is:
+	 * T1:a,b,c|T2:d,e,f|T3:h,g,i
+	 */
+	private String getTopicContentText(HashMap<String, ArrayList<String>[]> topicContent) {
+		String mainTxt = "";
+		for (String topic : topicContent.keySet()) {
+			String contentsTxt = "";
+			for (ArrayList<String> contentList : topicContent.get(topic)) {
+				for (String c : contentList) {
+					contentsTxt += (contentsTxt.isEmpty()? "": ",") + c;
+				}
+				mainTxt += (mainTxt.isEmpty()? "" : "|") + topic + ":" + contentsTxt;				
+			}
+		}
+		return mainTxt;
+	}
 	private ArrayList<ArrayList<String[]>> processRecommendations(URL url) {
 		// TODO this method should be implemented later
 		return null;

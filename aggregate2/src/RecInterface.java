@@ -36,6 +36,7 @@ public interface RecInterface {
      *            content_name and each value is an String[] with:<br />
      *            0: resource name (id) 1: display name 2: url 3: description 4:
      *            comment 5: provider id ...
+	 * @param topicContent 
      * @return an array list containing 2 array lists, first array list contains reactive 
      * 		   recommendations, second contains proactive (sequencing). Each array list 
      * 		   contains arrays String[], representing a recommended item with 
@@ -49,6 +50,6 @@ public interface RecInterface {
             String lastContentResult, String lastContentProvider,
             HashMap<String, String[]> contentList, int maxReactiveRec,int maxProactiveRec,
             double reactiveRecThreshold, double proactiveRecThreshold, 
-            String reactiveRecMethod, String proactiveRecMethod);
+            String reactiveRecMethod, String proactiveRecMethod, HashMap<String, ArrayList<String>[]> topicContent);
 
 }
