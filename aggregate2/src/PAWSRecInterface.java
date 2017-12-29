@@ -9,6 +9,7 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -30,7 +31,8 @@ public class PAWSRecInterface implements RecInterface {
             HashMap<String, String[]> contentList, int maxReactiveRec,int maxProactiveRec,
             double reactiveRecThreshold, double proactiveRecThreshold, 
             String reactiveRecMethod, String proactiveRecMethod,
-            HashMap<String, ArrayList<String>[]> topicContent) {
+            HashMap<String, ArrayList<String>[]> topicContent,
+            HashMap<String, double[]> userContentLevels) {
 		
 		ArrayList<ArrayList<String[]>> result = new ArrayList<ArrayList<String[]>>();
 		ArrayList<String[]> reactive_list = new ArrayList<String[]>();
@@ -58,6 +60,7 @@ public class PAWSRecInterface implements RecInterface {
             if(proactiveRecMethod != null && proactiveRecMethod.length()>0) method.addParameter("proactive_method", proactiveRecMethod);
             method.addParameter("contents", getContents(contentList));
             method.addParameter("topicContents",getTopicContentText(topicContent));
+            method.addParameter("userContentProgress", getUserContentProgressText(userContentLevels));
             if (verbose) System.out.println("RECOMENDATION CALL:");
             if (verbose) System.out.println(method.getURI().toString()+"\n"+method.getRequestBodyAsString());  
             
@@ -158,6 +161,16 @@ public class PAWSRecInterface implements RecInterface {
 //		text.substring(0, text.length()-1); // this is for ignoring the last ~ 
 //		return text;
 //	}
+
+	//This method returns a string with this format : act1,1;act2,0
+	private String getUserContentProgressText(HashMap<String, double[]> userContentLevels) {
+		String contentLvl = "";
+		for (Entry<String, double[]> e : userContentLevels.entrySet()) {
+			contentLvl += e.getKey() + "," + e.getValue()[1] + ";"; //2nd value in the array is for progress
+		}
+		if(contentLvl.length()>0) contentLvl = contentLvl.substring(0, contentLvl.length()-1); //this is for ignoring the last ;
+		return contentLvl;
+	}
 
 	private String getContents(HashMap<String, String[]> contentList) {
 		String contents = "";

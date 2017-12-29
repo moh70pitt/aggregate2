@@ -50,6 +50,8 @@ public interface RecInterface {
             String lastContentResult, String lastContentProvider,
             HashMap<String, String[]> contentList, int maxReactiveRec,int maxProactiveRec,
             double reactiveRecThreshold, double proactiveRecThreshold, 
-            String reactiveRecMethod, String proactiveRecMethod, HashMap<String, ArrayList<String>[]> topicContent);
+            String reactiveRecMethod, String proactiveRecMethod,
+            HashMap<String, ArrayList<String>[]> topicContent,
+            HashMap<String, double[]> userContentLevels);
 
 }

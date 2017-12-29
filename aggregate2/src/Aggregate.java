@@ -1132,7 +1132,7 @@ public class Aggregate {
 
 		ArrayList<ArrayList<String[]>> all_rec = rec_interface.getRecommendations(usr, grp, sid, cid, domain, last_content_id, last_content_res, last_content_provider, 
 				contentList, cm.agg_reactiverec_max, cm.agg_proactiverec_max, cm.agg_reactiverec_threshold, cm.agg_proactiverec_threshold,
-				cm.agg_reactiverec_method, cm.agg_proactiverec_method, topicContent);
+				cm.agg_reactiverec_method, cm.agg_proactiverec_method, topicContent, userContentLevels);
 		recommendation_list = new ArrayList<ArrayList<String>>();
 		if (all_rec != null){
 			// reactive recommendations
