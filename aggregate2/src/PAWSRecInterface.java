@@ -4,10 +4,11 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -43,24 +44,12 @@ public class PAWSRecInterface implements RecInterface {
 		try {
 			HttpClient client = new HttpClient();
             PostMethod method = new PostMethod(RecServiceURL);
+            String paramsJson = createParamJSON(usr, grp, sid, cid, domain, lastContentId, lastContentResult, lastContentProvider,
+					contentList, maxReactiveRec, maxProactiveRec, reactiveRecThreshold, proactiveRecThreshold,
+					reactiveRecMethod, proactiveRecMethod, topicContent, userContentLevels);   
+            method.setRequestBody(paramsJson);
+            method.addRequestHeader("Content-type", "application/json");
 
-            method.addParameter("usr", URLEncoder.encode(usr, "UTF-8"));
-            method.addParameter("grp", URLEncoder.encode(grp, "UTF-8"));
-            method.addParameter("sid", URLEncoder.encode(sid, "UTF-8"));
-            method.addParameter("cid", URLEncoder.encode(cid, "UTF-8"));
-            method.addParameter("domain", URLEncoder.encode(domain, "UTF-8"));
-            method.addParameter("lastContentId", URLEncoder.encode(lastContentId, "UTF-8"));
-            method.addParameter("lastContentResult", URLEncoder.encode(lastContentResult, "UTF-8"));
-            method.addParameter("lastContentProvider", URLEncoder.encode(lastContentProvider, "UTF-8"));
-            if(maxReactiveRec > -1) method.addParameter("reactive_max", maxReactiveRec+"");
-            if(maxProactiveRec > -1) method.addParameter("proactive_max", maxProactiveRec+"");
-            if(reactiveRecThreshold > -1) method.addParameter("reactive_threshold", reactiveRecThreshold+"");
-            if(proactiveRecThreshold > -1) method.addParameter("proactive_threshold", proactiveRecThreshold+"");
-            if(reactiveRecMethod != null && reactiveRecMethod.length()>0) method.addParameter("reactive_method", reactiveRecMethod);
-            if(proactiveRecMethod != null && proactiveRecMethod.length()>0) method.addParameter("proactive_method", proactiveRecMethod);
-            method.addParameter("contents", getContents(contentList));
-            method.addParameter("topicContents",getTopicContentText(topicContent));
-            method.addParameter("userContentProgress", getUserContentProgressText(userContentLevels));
             if (verbose) System.out.println("RECOMENDATION CALL:");
             if (verbose) System.out.println(method.getURI().toString()+"\n"+method.getRequestBodyAsString());  
             
@@ -144,6 +133,37 @@ public class PAWSRecInterface implements RecInterface {
 		return result;
 	}
 
+
+
+	private String createParamJSON(String usr, String grp, String sid, String cid, String domain, String lastContentId,
+			String lastContentResult, String lastContentProvider, HashMap<String, String[]> contentList,
+			int maxReactiveRec, int maxProactiveRec, double reactiveRecThreshold, double proactiveRecThreshold,
+			String reactiveRecMethod, String proactiveRecMethod, HashMap<String, ArrayList<String>[]> topicContent,
+			HashMap<String, double[]> userContentLevels) throws UnsupportedEncodingException {
+		
+		JSONObject json = new JSONObject();
+		json.put("usr", usr);
+		json.put("grp", grp);
+		json.put("sid", sid);
+		json.put("cid", cid);
+		json.put("domain", domain);
+		json.put("lastContentId", lastContentId);
+		json.put("lastContentResult", lastContentResult);
+		json.put("lastContentProvider", lastContentProvider);
+		if(maxReactiveRec > -1) json.put("reactive_max", maxReactiveRec+"");
+		if(maxProactiveRec > -1) json.put("proactive_max", maxProactiveRec+"");
+		if(reactiveRecThreshold > -1) json.put("reactive_threshold", reactiveRecThreshold+"");
+		if(proactiveRecThreshold > -1) json.put("proactive_threshold", proactiveRecThreshold+"");
+		if(reactiveRecMethod != null && reactiveRecMethod.length()>0) json.put("reactive_method", reactiveRecMethod);
+		if(proactiveRecMethod != null && proactiveRecMethod.length()>0) json.put("proactive_method", proactiveRecMethod);
+		json.put("contents", getContents(contentList));
+		json.put("topicContents",getTopicContentText(topicContent));
+		json.put("userContentProgress", getUserContentProgressText(userContentLevels));
+		return json.toString();
+	}
+	
+
+
 //	private String getTopicContents(HashMap<String, ArrayList<String>[]> topicContent) {
 //		String text = "";
 //		ArrayList<String>[] contents;
@@ -165,10 +185,12 @@ public class PAWSRecInterface implements RecInterface {
 	//This method returns a string with this format : act1,1;act2,0
 	private String getUserContentProgressText(HashMap<String, double[]> userContentLevels) {
 		String contentLvl = "";
-		for (Entry<String, double[]> e : userContentLevels.entrySet()) {
-			contentLvl += e.getKey() + "," + e.getValue()[1] + ";"; //2nd value in the array is for progress
+		if (userContentLevels != null) {
+			for (Entry<String, double[]> e : userContentLevels.entrySet()) {
+				contentLvl += e.getKey() + "," + e.getValue()[1] + ";"; //2nd value in the array is for progress
+			}
+			if(contentLvl.length()>0) contentLvl = contentLvl.substring(0, contentLvl.length()-1); //this is for ignoring the last ;
 		}
-		if(contentLvl.length()>0) contentLvl = contentLvl.substring(0, contentLvl.length()-1); //this is for ignoring the last ;
 		return contentLvl;
 	}
 
