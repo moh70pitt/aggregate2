@@ -151,6 +151,12 @@ public class GetContentLevels extends HttpServlet {
             {
             	String[] attmps = attemptsResSeq.split(",");
             	last_content_res = attmps[attmps.length-1];//the last attempt in the sequence
+            } else { 
+            	/*
+            	 * if attempts-seq data is not availlable,
+            	 *  we set the last activity result to the student's progress
+            	 */
+        		last_content_res = ""+ aggregate.userContentLevels.get(last_content_id)[1]; //2nd value in the array is for progress
             }
             
             if(cm.agg_proactiverec_enabled || cm.agg_reactiverec_enabled){
