@@ -46,7 +46,7 @@ public class PAWSRecInterface implements RecInterface {
             PostMethod method = new PostMethod(RecServiceURL);
             String paramsJson = createParamJSON(usr, grp, sid, cid, domain, lastContentId, lastContentResult, lastContentProvider,
 					contentList, maxReactiveRec, maxProactiveRec, reactiveRecThreshold, proactiveRecThreshold,
-					reactiveRecMethod, proactiveRecMethod, topicContent, userContentLevels);   
+					reactiveRecMethod, proactiveRecMethod, topicContent, userContentLevels, updatesm);   
             method.setRequestBody(paramsJson);
             method.addRequestHeader("Content-type", "application/json");
 
@@ -139,7 +139,7 @@ public class PAWSRecInterface implements RecInterface {
 			String lastContentResult, String lastContentProvider, HashMap<String, String[]> contentList,
 			int maxReactiveRec, int maxProactiveRec, double reactiveRecThreshold, double proactiveRecThreshold,
 			String reactiveRecMethod, String proactiveRecMethod, HashMap<String, ArrayList<String>[]> topicContent,
-			HashMap<String, double[]> userContentLevels) throws UnsupportedEncodingException {
+			HashMap<String, double[]> userContentLevels, String updatesm) throws UnsupportedEncodingException {
 		
 		JSONObject json = new JSONObject();
 		json.put("usr", usr);
@@ -159,7 +159,7 @@ public class PAWSRecInterface implements RecInterface {
 		json.put("contents", getContents(contentList));
 		json.put("topicContents",getTopicContentText(topicContent));
 		json.put("userContentProgress", getUserContentProgressText(userContentLevels));
-		json.put("updatesm", getUserContentProgressText(userContentLevels));
+		json.put("updatesm", updatesm);
 		return json.toString();
 	}
 	
