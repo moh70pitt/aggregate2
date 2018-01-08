@@ -159,7 +159,7 @@ public class PAWSRecInterface implements RecInterface {
 		json.put("contents", getContents(contentList));
 		json.put("topicContents",getTopicContentText(topicContent));
 		json.put("userContentProgress", getUserContentProgressText(userContentLevels));
-		json.put("updatesm", updatesm);
+		json.put("updatesm", (updatesm == null ? "false" : updatesm));
 		return json.toString();
 	}
 	
