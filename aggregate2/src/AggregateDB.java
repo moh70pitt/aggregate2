@@ -211,7 +211,7 @@ public class AggregateDB extends dbInterface {
 
     }
 
-    
+
     // now get data with resource instead of content_type
     public HashMap<String, String[]> getContent2(String course_id) {
         try {
@@ -271,7 +271,7 @@ public class AggregateDB extends dbInterface {
                     + "and T.active=1 and C.visible = 1 and TC.visible = 1 "
                     + "and TC.topic_id=T.topic_id and C.content_id = TC.content_id and R.resource_id = TC.resource_id "
                     + "group by T.topic_id";
-            
+
             //System.out.println("query:");
             //System.out.println(query);
             //System.out.println();
@@ -315,32 +315,32 @@ public class AggregateDB extends dbInterface {
     }
 
 
-    
-    // 
-    public void storeComputedModel(String user, String course_id, 
+
+    //
+    public void storeComputedModel(String user, String course_id,
     		String group_id, String sid, String model4topics, String model4content, String model4kc) {
         try {
         	String query = "";
-            
+
             if(this.existComputedModel(user, course_id)){
                 query = "UPDATE ent_computed_models SET model4topics='"
                         + model4topics + "', model4content='" + model4content + "', model4kc='" + model4kc
                         + "', last_update=now() WHERE user_id = '" + user
-                        + "' and course_id='" + course_id + "';";            	
+                        + "' and course_id='" + course_id + "';";
             }else{
                 query = "INSERT INTO ent_computed_models (user_id,course_id,last_update,model4topics,model4content,model4kc) VALUES " +
-                		"('" +user+ "'," +course_id+ ",now(),'" + model4topics + "','" + model4content + "','" + model4kc + "');";            	
+                		"('" +user+ "'," +course_id+ ",now(),'" + model4topics + "','" + model4content + "','" + model4kc + "');";
             }
             stmt = conn.createStatement();
             //System.out.println(query);
             stmt.execute(query);
-            query = "INSERT INTO ent_computed_models_history (user_id,course_id,group_id,session_id,computedon,model4topics,model4content,model4kc) values " + 
+            query = "INSERT INTO ent_computed_models_history (user_id,course_id,group_id,session_id,computedon,model4topics,model4content,model4kc) values " +
                 		"('"+ user+ "',"+ course_id+ ",'"+ group_id+ "','"+ sid+ "',now(),'"+ model4topics+ "','"+ model4content+ "','" + model4kc + "');";
             //System.out.println(query);
             stmt.execute(query);
 
             // System.out.println(query);
-            
+
             this.releaseStatement(stmt, rs);
         } catch (SQLException ex) {
             System.out.println("SQLException: " + ex.getMessage());
@@ -353,7 +353,7 @@ public class AggregateDB extends dbInterface {
 
     }
 
-    
+
 
 
     // Sees if a user has a model for a specific course id
@@ -500,13 +500,13 @@ public class AggregateDB extends dbInterface {
             return false;
         }
     }
-    
-    
-    
-    // resource name , resource display name,desc,visible,update_state_on 
+
+
+
+    // resource name , resource display name,desc,visible,update_state_on
     // Example:  qz , question, "this is the description" , 1, 101
-    // update_state_on: digits represent in order the options for updating the user model: 
-    //          1: activity done, 2: in window close, and 3: window close if activity done. 
+    // update_state_on: digits represent in order the options for updating the user model:
+    //          1: activity done, 2: in window close, and 3: window close if activity done.
     //          For example 010 will update UM when the content window is closed.
     public ArrayList<String[]> getResourceList(String course_id) {
         try {
@@ -540,8 +540,8 @@ public class AggregateDB extends dbInterface {
             return null;
         }
 
-    }   
-    
+    }
+
     public ArrayList<String[]> getSubGroups(String group_id) {
         try {
             ArrayList<String[]> res = new ArrayList<String[]>();
@@ -566,7 +566,7 @@ public class AggregateDB extends dbInterface {
         }
 
     }
-    
+
     public ArrayList<String[]> getParameters(String user_id, String group_id) {
         try {
             ArrayList<String[]> res = new ArrayList<String[]>();
@@ -594,7 +594,7 @@ public class AggregateDB extends dbInterface {
         }
 
     }
-    
+
     public String[] getTimeLine(String group_id) {
         try {
             String[] res = new String[2];
@@ -618,17 +618,17 @@ public class AggregateDB extends dbInterface {
         }
 
     }
-    
-    
-    // Other methods to insert Groups, non students, select current/covered topics, 
-    
+
+
+    // Other methods to insert Groups, non students, select current/covered topics,
+
     // Add a group
     public boolean registerGroup(String grp, String grpName, String cid, String term, String year, String creatorId) {
         String query = "";
         try {
             stmt = conn.createStatement();
-            query = "INSERT INTO ent_group (group_id, group_name, course_id, creation_date, term, year, creator_id) values " + 
-                    "('" + grp + "','" + grpName + "','" + cid + "',now(),'" + term + "','" + year + "','" + creatorId + "');"; 
+            query = "INSERT INTO ent_group (group_id, group_name, course_id, creation_date, term, year, creator_id) values " +
+                    "('" + grp + "','" + grpName + "','" + cid + "',now(),'" + term + "','" + year + "','" + creatorId + "');";
 
             stmt.executeUpdate(query);
             // System.out.println(query);
@@ -648,8 +648,8 @@ public class AggregateDB extends dbInterface {
         String query = "";
         try {
             stmt = conn.createStatement();
-            query = "INSERT INTO ent_non_student (group_id, user_id, user_role) values " + 
-                    "('" + grp + "','" + usr + "','" + role + "');"; 
+            query = "INSERT INTO ent_non_student (group_id, user_id, user_role) values " +
+                    "('" + grp + "','" + usr + "','" + role + "');";
 
             stmt.executeUpdate(query);
             // System.out.println(query);
@@ -664,7 +664,7 @@ public class AggregateDB extends dbInterface {
             return false;
         }
     }
-    
+
     public HashMap<String,String[]> getProvidersInfo(String courseId){
     	try {
     		HashMap<String,String[]> res = new HashMap<String,String[]>();
@@ -676,7 +676,7 @@ public class AggregateDB extends dbInterface {
             while (rs.next()) {
                 String id = rs.getString("provider_id");
                 String[] urls = new String[4];
-          
+
                 urls[0] = rs.getString("um_svc_url");
                 urls[1] = rs.getString("activity_svc_url");
                 res.put(id,urls);
@@ -691,9 +691,9 @@ public class AggregateDB extends dbInterface {
             return null;
         }
     }
-    
-    
-    // @@@@ JULIO KCMAP 
+
+
+    // @@@@ JULIO KCMAP
 	// Read the list of concepts which are "active" (would be shown)
 	public HashMap<String,KnowledgeComponent> getAllKCs(String domain) {
 		HashMap<String,KnowledgeComponent> res = new HashMap<String,KnowledgeComponent>();
@@ -702,13 +702,13 @@ public class AggregateDB extends dbInterface {
 			stmt = conn.createStatement();
 			String query = "SELECT KC.id, KC.component_name, KC.cardinality, KC.display_name, threshold1, threshold2, "
 						+ " GROUP_CONCAT(CC.content_name, ',', cast(CC.weight as char), ',', cast(CC.importance as char), ',', cast(CC.contributesK as char) ORDER BY CC.content_name SEPARATOR '|' ) as contents, "
-						+ " KC.main_topic, KC.main_component " 
-						+ " FROM kc_component KC, kc_content_component CC" 
-						+ " WHERE  KC.component_name = CC.component_name and KC.active=1 AND CC.active=1 and KC.domain='"+domain+"' AND CC.domain = KC.domain" 
-						+ " GROUP BY KC.cardinality ASC, CC.component_name ASC";
+						+ " KC.main_topic, KC.main_component "
+						+ " FROM kc_component KC, kc_content_component CC"
+						+ " WHERE  KC.component_name = CC.component_name and KC.active=1 AND CC.active=1 and KC.domain='"+domain+"' AND CC.domain = KC.domain"
+						+ " GROUP BY KC.id,KC.cardinality ASC, CC.component_name ASC";
 			//System.out.println(query);
 			rs = stmt.executeQuery(query);
-			
+
 			while (rs.next()) {
 				int id = rs.getInt("id");
 				int cardinality = rs.getInt("cardinality");
@@ -731,7 +731,7 @@ public class AggregateDB extends dbInterface {
 						if(mainKc != null) ((KnowledgeComponentGroup)c).setMainKc(mainKc);
 					}
 				}
-				
+
 				String[] contentRels = rs.getString("contents").split("\\|");
 				//System.out.println(name);
 				if(contentRels != null) {
@@ -761,8 +761,8 @@ public class AggregateDB extends dbInterface {
 		return res;
 
 	}
-	
-    // @@@@ JULIO 
+
+    // @@@@ JULIO
 	// Get stats of content
 	public HashMap<String,ContentStats> getContentStats(String domain) {
 		HashMap<String,ContentStats> res = new HashMap<String,ContentStats>();
@@ -776,9 +776,9 @@ public class AggregateDB extends dbInterface {
 					+ " FROM stats_content WHERE domain = '"+domain+"'";
 			//System.out.println(query);
 			rs = stmt.executeQuery(query);
-			
+
 			while (rs.next()) {
-				
+
 				String name = rs.getString("content_name");
 				ContentStats c = new ContentStats(rs.getString("content_name"),rs.getString("provider_id"),
 						 rs.getDouble("a_p10"),rs.getDouble("a_p25"),rs.getDouble("a_p33"),rs.getDouble("a_p50"),rs.getDouble("a_p66"),rs.getDouble("a_p75"),rs.getDouble("a_p80"),rs.getDouble("a_p85"),rs.getDouble("a_p90"),
@@ -799,6 +799,223 @@ public class AggregateDB extends dbInterface {
 		}
 		return res;
 
-	}	
-    
+	}
+
+  public List<Logs> getFiveRecentPoints(String user_id, String group_id){
+    List<Logs> res = new ArrayList<Logs>();
+    try{
+      stmt= conn.createStatement();
+      String query = "select * from ent_point e where e.user_id = '"+user_id+"' and e.group_id = '"+group_id+"' order by total_point + 0 desc limit 5 ;";
+      rs = stmt.executeQuery(query);
+      while(rs.next()){
+        Logs l = new Logs(rs.getString("recent_point"), rs.getString("description"),rs.getString("total_point"));
+        res.add(l);
+      }
+      this.releaseStatement(stmt, rs);
+    } catch(SQLException ex){
+        System.out.println("SQLException: " + ex.getMessage());
+        System.out.println("SQLState: " + ex.getSQLState());
+        System.out.println("VendorError: " + ex.getErrorCode());
+    } finally {
+      this.releaseStatement(stmt, rs);
+    }
+    return res;
+  }
+  public Logs getMostRecentLogForEachStudent(String user_id, String group_id){
+    Logs res = null ;
+    try{
+      stmt = conn.createStatement();
+      System.out.println("stmt:"+ stmt.toString());
+      //String query = "select e.recent_point, e.description, MAX(e.total_point + 0) from ent_point e where e.user_id = '" + user_id + "' and e.group_id = '" + group_id + "' group by e.user_id, e.group_id;";
+      String query = "select * from ent_point where user_id = '"+user_id+"' and group_id = '"+group_id+"' order by total_point + 0 desc limit 1;";
+      System.out.println("query:"+ query);
+      rs = stmt.executeQuery(query);
+      while(rs.next()){
+      //if(rs!=null) {
+    	  	System.out.println("recent_point: " + rs.getString("recent_point")+" description: "+ rs.getString("description")+ " total_point: "+ rs.getString("total_point"));
+        res = new Logs(rs.getString("recent_point"), rs.getString("description"),rs.getString("total_point"));
+      //}
+      }
+      this.releaseStatement(stmt,rs);
+
+    } catch (SQLException ex){
+        System.out.println("SQLException: " + ex.getMessage());
+        System.out.println("SQLState: " + ex.getSQLState());
+        System.out.println("VendorError: " + ex.getErrorCode());
+    } finally {
+        this.releaseStatement(stmt, rs);
+    }
+    return res;
+  }
+  public List<Badges> getBadgesForEachStudent(String user_id, String group_id){
+    List<Badges> res = new ArrayList<Badges>();
+    try{
+      stmt = conn.createStatement();
+      String query = "select e.* from rel_user_badge r , ent_badge e where r.user_id = '" + user_id + "' and r.group_id = '" + group_id + "' and r.badge_id = e.badge_id;";
+
+      rs = stmt.executeQuery(query);
+      while(rs.next()){
+        Badges b = new Badges(rs.getString("badge_id"),rs.getString("value"),rs.getString("name"), rs.getString("type"), rs.getString("img_URL"), rs.getString("congrat_description"));
+        res.add(b);
+      }
+      this.releaseStatement(stmt, rs);
+
+    } catch(SQLException ex){
+        System.out.println("SQLException: " + ex.getMessage());
+        System.out.println("SQLState: " + ex.getSQLState());
+        System.out.println("VendorError: " + ex.getErrorCode());
+    } finally {
+      this.releaseStatement(stmt, rs);
+    }
+    return res;
+  }
+  
+  public String getTotalRecForEachStudent(String user_id, String group_id){
+    String res = null;
+    try{
+      stmt = conn.createStatement();
+      String query = "select e.total_rec from ent_user_rec e where e.user_id = '"+user_id+"' and e.group_id = '" + group_id + "' ;";
+      rs = stmt.executeQuery(query);
+      while(rs.next()) {
+    	  	res = rs.getString("total_rec");
+      }
+      this.releaseStatement(stmt, rs);
+       
+    } catch(SQLException ex){
+      System.out.println("SQLException: " + ex.getMessage());
+      System.out.println("SQLState: " + ex.getSQLState());
+      System.out.println("VendorError: " + ex.getErrorCode());
+    } finally {
+      this.releaseStatement(stmt,rs);
+    }
+    return res;
+  }
+  public boolean updateTotalRecForEachStudent(String user_id, String group_id, String newTotal){
+    try{
+      stmt = conn.createStatement();
+      String query = "update ent_user_rec set total_rec = '"+newTotal+"' where user_id = '"+user_id+"' and group_id='" + group_id + "';";
+      int count = stmt.executeUpdate(query);
+      if( count == 0 ) {
+    	  	query = "insert into ent_user_rec(user_id,group_id, total_rec)  values('"+user_id+"','"+group_id+"','"+newTotal+"');";
+    	  	stmt.executeUpdate(query);
+      }
+
+      this.releaseStatement(stmt, rs);
+      return true;
+    } catch(SQLException ex){
+      System.out.println("SQLException: " + ex.getMessage());
+      System.out.println("SQLState: " + ex.getSQLState());
+      System.out.println("VendorError: " + ex.getErrorCode());
+
+      this.releaseStatement(stmt, rs);
+      return false;
+
+    }
+  }
+
+  public boolean insertTotalRecForEachStudent(String user_id, String group_id, String newTotal){
+    try{
+      stmt = conn.createStatement();
+      String query = "insert into ent_user_rec(user_id,group_id, total_rec)  values('"+user_id+"','"+group_id+"','"+newTotal+"');";
+      stmt.executeUpdate(query);
+      this.releaseStatement(stmt, rs);
+      return true;
+      
+    } catch(SQLException ex){
+      System.out.println("SQLException: " + ex.getMessage());
+      System.out.println("SQLState: " + ex.getSQLState());
+      System.out.println("VendorError: " + ex.getErrorCode());
+
+      this.releaseStatement(stmt, rs);
+      return false;
+    }
+  }
+  
+  public String getBadgeIDBasedOnValue(String value){
+    String res = "null";
+    try{
+      stmt = conn.createStatement();
+      String query = "select e.* from ent_badge e  where e.value = '" + value + "';";
+      rs = stmt.executeQuery(query);
+      while(rs.next()){
+        res = rs.getString("badge_id");
+      }
+      this.releaseStatement( stmt , rs );
+    } catch(SQLException ex){
+        System.out.println("SQLException: " + ex.getMessage());
+        System.out.println("SQLState: " + ex.getSQLState());
+        System.out.println("VendorError: " + ex.getErrorCode());
+    } finally{
+      this.releaseStatement(stmt, rs);
+    }
+    return res;
+  }
+  public Badges getBadgeById(String id) {
+	  Badges res = null;
+	    try{
+	      stmt = conn.createStatement();
+	      String query = "select e.* from ent_badge e  where e.badge_id = '" + id + "';";
+	      rs = stmt.executeQuery(query);
+	      while(rs.next()){
+	        res =new Badges(rs.getString("badge_id"), rs.getString("value"), rs.getString("name"), rs.getString("type"), rs.getString("img_URL"), rs.getString("congrat_description"));
+	      }
+	      this.releaseStatement( stmt , rs );
+	    } catch(SQLException ex){
+	        System.out.println("SQLException: " + ex.getMessage());
+	        System.out.println("SQLState: " + ex.getSQLState());
+	        System.out.println("VendorError: " + ex.getErrorCode());
+	    } finally{
+	      this.releaseStatement(stmt, rs);
+	    }
+	    return res;
+  }
+  public boolean insertNewBadge(String badge_id,String value, String name, String type, String img_URL, String congrat_description){
+    try {
+      stmt = conn.createStatement();
+      String query = "insert into ent_badge(badge_id, value, name, type, img_URL, congrat_description) values('"+badge_id+"','"+value+"','"+name+"','"+type+"','"+img_URL+"','"+congrat_description+"');";
+      stmt.executeUpdate(query);
+      this.releaseStatement(stmt, rs);
+      return true;
+    } catch(SQLException ex){
+      System.out.println("SQLException: " + ex.getMessage());
+      System.out.println("SQLState: " + ex.getSQLState());
+      System.out.println("VendorError: " + ex.getErrorCode());
+
+      this.releaseStatement(stmt, rs);
+      return false;
+    }
+  }
+  public boolean insertNewBadgeForEachStudent(String user_id, String group_id, String badge_id){
+    try {
+      stmt = conn.createStatement();
+      String query = "insert into rel_user_badge(user_id, group_id, badge_id) values('"+user_id+"','"+group_id+"','"+badge_id+"');";
+      System.out.println("The Query for insert new badge is: "+ query);
+      stmt.executeUpdate(query);
+      this.releaseStatement(stmt,rs);
+      return true;
+    } catch(SQLException ex){
+      System.out.println("SQLException11: " + ex.getMessage());
+      System.out.println("SQLState: " + ex.getSQLState());
+      System.out.println("VendorError: " + ex.getErrorCode());
+
+      this.releaseStatement(stmt, rs);
+      return false;
+    }
+  }
+  public boolean insertRecentPoint(String user_id, String group_id, String recent_point, String description, String total_point){
+    try {
+      stmt =conn.createStatement();
+      String query = "insert into ent_point(user_id, group_id, recent_point, description, total_point) values('"+user_id+"', '"+group_id+"','"+recent_point+"','"+description+"','"+total_point+"');";
+      stmt.executeUpdate(query);
+      this.releaseStatement(stmt,rs);
+      return true;
+    } catch(SQLException ex){
+      System.out.println("SQLException: " + ex.getMessage());
+      System.out.println("SQLState: " + ex.getSQLState());
+      System.out.println("VendorError: " + ex.getErrorCode());
+
+      this.releaseStatement(stmt, rs);
+      return false;
+    }
+  }
 }
