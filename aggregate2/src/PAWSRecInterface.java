@@ -33,7 +33,7 @@ public class PAWSRecInterface implements RecInterface {
             double reactiveRecThreshold, double proactiveRecThreshold, 
             String reactiveRecMethod, String proactiveRecMethod,
             HashMap<String, ArrayList<String>[]> topicContent,
-            HashMap<String, double[]> userContentLevels) {
+            HashMap<String, double[]> userContentLevels, String updatesm) {
 		
 		ArrayList<ArrayList<String[]>> result = new ArrayList<ArrayList<String[]>>();
 		ArrayList<String[]> reactive_list = new ArrayList<String[]>();
@@ -159,6 +159,7 @@ public class PAWSRecInterface implements RecInterface {
 		json.put("contents", getContents(contentList));
 		json.put("topicContents",getTopicContentText(topicContent));
 		json.put("userContentProgress", getUserContentProgressText(userContentLevels));
+		json.put("updatesm", getUserContentProgressText(userContentLevels));
 		return json.toString();
 	}
 	

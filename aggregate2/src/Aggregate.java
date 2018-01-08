@@ -1119,11 +1119,13 @@ public class Aggregate {
 			activity_feedback_form_items.add(item1);
 		}
 	}
+	
+	
 
 
 	// @@@@ RECOMMENDATIONS getting the recommendations from the recommendation interface
 	// it will fill reactive recommendations and proactive scoring (sequencing)
-	public void fillRecommendations(String last_content_id, String last_content_res, int n) {
+	public void fillRecommendations(String last_content_id, String last_content_res, int n, String updatesm) {
 		// @@@ get the content provider
 		String last_content_provider = ""; 
 		if (last_content_id != null && last_content_id.length()>0) 
@@ -1132,7 +1134,7 @@ public class Aggregate {
 
 		ArrayList<ArrayList<String[]>> all_rec = rec_interface.getRecommendations(usr, grp, sid, cid, domain, last_content_id, last_content_res, last_content_provider, 
 				contentList, cm.agg_reactiverec_max, cm.agg_proactiverec_max, cm.agg_reactiverec_threshold, cm.agg_proactiverec_threshold,
-				cm.agg_reactiverec_method, cm.agg_proactiverec_method, topicContent, userContentLevels);
+				cm.agg_reactiverec_method, cm.agg_proactiverec_method, topicContent, userContentLevels, updatesm);
 		recommendation_list = new ArrayList<ArrayList<String>>();
 		if (all_rec != null){
 			// reactive recommendations

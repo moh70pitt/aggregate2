@@ -52,6 +52,6 @@ public interface RecInterface {
             double reactiveRecThreshold, double proactiveRecThreshold, 
             String reactiveRecMethod, String proactiveRecMethod,
             HashMap<String, ArrayList<String>[]> topicContent,
-            HashMap<String, double[]> userContentLevels);
+            HashMap<String, double[]> userContentLevels, String updatesm);
 
 }
