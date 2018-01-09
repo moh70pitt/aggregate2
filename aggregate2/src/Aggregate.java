@@ -1,5 +1,6 @@
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1533,6 +1534,7 @@ public class Aggregate {
 
 		// Overwrite the services configuration. Group and the user gives user's defined
 		// parameters high priority
+			
 		if (groupParameters != null)
 			overwriteServiceConfig(groupParameters[1]);
 		if (userParameters != null)
@@ -2019,6 +2021,7 @@ public class Aggregate {
 
 		res += topic_levels + ",\n" + content_levels;
 
+		
 		if (student.equalsIgnoreCase(usr) && cm.agg_kcmap) {
 			String kc_levels = "    kcs:{  \n";
 
@@ -2139,6 +2142,7 @@ public class Aggregate {
 		topic_levels += "\n    }";
 		content_levels += "\n    }";
 		String kc_levels = "";
+
 		if (cm.agg_kcmap) {
 			kc_levels = "    kcs:{ \n";
 			if (allKCList != null) {
@@ -2290,8 +2294,9 @@ public class Aggregate {
 		String output = "{\n  lastActivityId:\"" + last_content_id + "\",\n  lastActivityRes:" + last_content_res
 				+ ",\n  learner:{\n    id:\"" + usr + "\",name:\"" + usr_name + "\",\n";
 		output += genJSONLearnerState(usr);
+		output += "\n  },\n"; // closing learner object
 		output += genJSONRecommendation() + ",\n";
-		output += genJSONFeedback() + ",\n";
+		output += genJSONFeedback() + ", \n";
 		output += genLogJSON() + ",\n";
 		output += genBadgeJSON(false) + ",\n";
 		output += genTotalRecJSON();
@@ -2332,7 +2337,7 @@ public class Aggregate {
 
 			;
 		} else if (!allOrUser && global_new_badge_id != null) {
-			System.out.println("global_new_badge_id is :" + global_new_badge_id);
+			//System.out.println("global_new_badge_id is :" + global_new_badge_id);
 			Badges bdg = agg_db.getBadgeById(global_new_badge_id);
 			output += "{id: \"" + bdg.getId() + "\", value: \"" + bdg.getValue() + "\", name: \"" + bdg.getName()
 					+ "\", type: \"" + bdg.getType() + "\", img_URL: \"" + bdg.getImgURL() + "\", congradulationMSG: \""
@@ -2351,7 +2356,7 @@ public class Aggregate {
 		if (totalSolvedRecommendedActivity != null)
 			output += "value: \"" + totalSolvedRecommendedActivity + "\"}\n";
 		else
-			output += "value:  }\n";
+			output += "}\n";
 		closeDBConnections();
 		return output;
 	}

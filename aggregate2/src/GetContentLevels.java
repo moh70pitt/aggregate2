@@ -200,7 +200,7 @@ public class GetContentLevels extends HttpServlet {
 
 			// I need to know two parameter last_content_point and is_recommended
 			time1 = Calendar.getInstance().getTimeInMillis();
-			if (last_content_id != null && last_content_id.length() > 0)
+			if (last_content_id != null && last_content_id.length() > 0 && last_content_seq != null && last_content_old_progress!=null)
 				aggregate.updatePointsAndBadges(last_content_id, last_content_res, last_content_seq,
 						last_content_old_progress);
 			if (verbose)

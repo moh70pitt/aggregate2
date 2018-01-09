@@ -705,7 +705,7 @@ public class AggregateDB extends dbInterface {
 						+ " KC.main_topic, KC.main_component "
 						+ " FROM kc_component KC, kc_content_component CC"
 						+ " WHERE  KC.component_name = CC.component_name and KC.active=1 AND CC.active=1 and KC.domain='"+domain+"' AND CC.domain = KC.domain"
-						+ " GROUP BY KC.id,KC.cardinality ASC, CC.component_name ASC";
+						+ " GROUP BY KC.cardinality ASC, CC.component_name ASC";
 			//System.out.println(query);
 			rs = stmt.executeQuery(query);
 
