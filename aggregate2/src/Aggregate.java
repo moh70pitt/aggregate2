@@ -128,7 +128,8 @@ public class Aggregate {
 
 	private String userManualFile = "";
 
-	private String global_new_badge_id = null;
+	private String global_new_rec_badge_id = null;
+	private String global_new_other_badge_id = null;
 
 	/**
 	 * The constructor load the course structure and content from DB and compute the
@@ -1175,12 +1176,9 @@ public class Aggregate {
 	
 	public void updatePointsAndBadges(String last_content_id, String last_content_res, String last_content_seq,
 			String last_content_old_progress) {
-		// System.out.println("last_content_id: "+ last_content_id + "last_content_res"+
-		// last_content_res + "last_content_seq" + last_content);
 		int last_content_point = 0;
 		boolean is_recommended = false;
 		if (Double.parseDouble(last_content_res) > Double.parseDouble(last_content_old_progress)) { // check last progress with new progress to prevent give student point for repetitive solving
-
 			String[] result = calculatePoint(last_content_id, last_content_res, last_content_seq);
 			is_recommended = Boolean.valueOf(result[0]);
 			last_content_point = Integer.parseInt(result[1]);
@@ -1198,8 +1196,14 @@ public class Aggregate {
 			} else {
 				newTotalPoint = last_content_point;
 			}
-			String description = "+" + String.valueOf(last_content_point) + " for activity "
-					+ contentList.get(last_content_id)[1];
+			String description = "+" + String.valueOf(last_content_point) ;
+			// " for activity "+ contentList.get(last_content_id)[1];
+			if(last_content_provider.equalsIgnoreCase("pcrs"))
+				description += " Coding Solved!";
+			else if(last_content_provider.equalsIgnoreCase("pcex_ch"))
+				description += " Challenge Solved!";
+			else if(last_content_provider.equalsIgnoreCase("pcex"))
+				description += " Example Line Clicked.";
 			// System.out.println("description for getting point: "+ description);
 			agg_db.insertRecentPoint(usr, grp, String.valueOf(last_content_point), description,
 					String.valueOf(newTotalPoint));
@@ -1215,7 +1219,7 @@ public class Aggregate {
 				badge_id = agg_db.getBadgeIDBasedOnValue(badge_value);
 				if (!badge_id.equalsIgnoreCase("null")) {
 					agg_db.insertNewBadgeForEachStudent(usr, grp, badge_id);
-					global_new_badge_id = badge_id;
+					global_new_rec_badge_id = badge_id;
 				}
 			}
 
@@ -1232,14 +1236,15 @@ public class Aggregate {
 					String provider = getProviderByContentName(content_id);
 					double progress = e.getValue()[1];
 					if (progress > 0) {
-						switch (provider) {
-						case "pcrs":
+						if(provider.equalsIgnoreCase("pcrs")) {
 							totalCo += 1;
-						case "pcex_ch":
-							totalCh += 1;
-						case "pcex":
-							totalEx += 1;
 						}
+						else if(provider.equalsIgnoreCase("pcex_ch")) {
+							totalCh += 1;
+						}
+						else if(provider.equalsIgnoreCase("pcex")) {
+							totalEx += 1;
+						}	
 					}
 				}
 			}
@@ -1259,6 +1264,7 @@ public class Aggregate {
 				badge_id = agg_db.getBadgeIDBasedOnValue(badge_value);
 				if (!badge_id.equals("null")) {
 					agg_db.insertNewBadgeForEachStudent(usr, grp, badge_id);
+					global_new_other_badge_id = badge_id;
 				}
 			}
 
@@ -2336,9 +2342,14 @@ public class Aggregate {
 			}
 
 			;
-		} else if (!allOrUser && global_new_badge_id != null) {
-			//System.out.println("global_new_badge_id is :" + global_new_badge_id);
-			Badges bdg = agg_db.getBadgeById(global_new_badge_id);
+		} else if (!allOrUser && global_new_rec_badge_id != null) {
+			//System.out.println("global_new_rec_badge_id is :" + global_new_rec_badge_id);
+			Badges bdg = agg_db.getBadgeById(global_new_rec_badge_id);
+			output += "{id: \"" + bdg.getId() + "\", value: \"" + bdg.getValue() + "\", name: \"" + bdg.getName()
+					+ "\", type: \"" + bdg.getType() + "\", img_URL: \"" + bdg.getImgURL() + "\", congradulationMSG: \""
+					+ bdg.getCongradualationMSG() + "\" },\n";
+		} else if(!allOrUser && global_new_other_badge_id != null) {
+			Badges bdg = agg_db.getBadgeById(global_new_other_badge_id);
 			output += "{id: \"" + bdg.getId() + "\", value: \"" + bdg.getValue() + "\", name: \"" + bdg.getName()
 					+ "\", type: \"" + bdg.getType() + "\", img_URL: \"" + bdg.getImgURL() + "\", congradulationMSG: \""
 					+ bdg.getCongradualationMSG() + "\" },\n";
