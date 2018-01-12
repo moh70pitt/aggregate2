@@ -128,8 +128,8 @@ public class Aggregate {
 
 	private String userManualFile = "";
 
-	private String global_new_rec_badge_id = null;
-	private String global_new_other_badge_id = null;
+	
+	private List<String> global_new_badge_id = new ArrayList<>();
 
 	/**
 	 * The constructor load the course structure and content from DB and compute the
@@ -1185,6 +1185,7 @@ public class Aggregate {
 			String last_content_provider = getProviderByContentName(last_content_id);
 			String badge_value;
 			String badge_id;
+			int newTotalRec= 0;
 
 			openDBConnections();
 			// update the total points and its Logs
@@ -1207,19 +1208,21 @@ public class Aggregate {
 			// System.out.println("description for getting point: "+ description);
 			agg_db.insertRecentPoint(usr, grp, String.valueOf(last_content_point), description,
 					String.valueOf(newTotalPoint));
+			agg_db.insertRecentPointToHistoryTable(usr, grp, String.valueOf(last_content_point), description, String.valueOf(newTotalPoint), last_content_id, last_content_provider);
 			// update the recommended badges if it is recommended and number of total_rec
 			if (is_recommended) {
 				String oldTotalRec = agg_db.getTotalRecForEachStudent(usr, grp);
 				if (oldTotalRec == null)
 					oldTotalRec = "0";
-				int newTotalRec = Integer.parseInt(oldTotalRec) + 1;
+				newTotalRec = Integer.parseInt(oldTotalRec) + 1;
 				agg_db.updateTotalRecForEachStudent(usr, grp, String.valueOf(newTotalRec));
 				badge_value = "R" + String.valueOf(newTotalRec);
 				// System.out.println("badge_value is :" + badge_value);
 				badge_id = agg_db.getBadgeIDBasedOnValue(badge_value);
 				if (!badge_id.equalsIgnoreCase("null")) {
 					agg_db.insertNewBadgeForEachStudent(usr, grp, badge_id);
-					global_new_rec_badge_id = badge_id;
+					
+					global_new_badge_id.add(badge_id);
 				}
 			}
 
@@ -1264,9 +1267,14 @@ public class Aggregate {
 				badge_id = agg_db.getBadgeIDBasedOnValue(badge_value);
 				if (!badge_id.equals("null")) {
 					agg_db.insertNewBadgeForEachStudent(usr, grp, badge_id);
-					global_new_other_badge_id = badge_id;
+					
+					global_new_badge_id.add(badge_id);
 				}
 			}
+			
+			List<Badges> allBadges = agg_db.getBadgesForEachStudent(usr, grp);
+			//this function check the existance of previous badges and may have not been added to the user profile
+			checkExistanceOfPreviousBadges(allBadges, newTotalRec, totalCo, totalCh, totalEx);
 
 			closeDBConnections();
 		}
@@ -1318,7 +1326,63 @@ public class Aggregate {
 		}
 		return res;
 	}
-
+	
+	public void checkExistanceOfPreviousBadges(List<Badges>allBadges, int TotalRec, int TotalCo, int TotalCh, int TotalEx) {
+		Map<String,Badges> badgeValues = new HashMap<>();
+		for(Badges b: allBadges) {
+			badgeValues.put(b.getValue(), b);
+		}
+		int[] recommended = {5,10,20,40,70,110,160,200};
+		int[] coding = {1, 10, 25, 45};
+		int[] challenge = {1, 10, 25, 45, 70};
+		int[] example = {1, 10, 25 , 45};
+		
+		for(int i = 0; i< recommended.length; i++) {
+			if(recommended[i] <= TotalRec) {
+				if(badgeValues.get("R"+String.valueOf(recommended[i]))==null){
+					String badge_id = agg_db.getBadgeIDBasedOnValue("R"+String.valueOf(recommended[i]));
+					if(badge_id !=null) {
+						agg_db.insertNewBadgeForEachStudent(usr, grp, badge_id);
+						global_new_badge_id.add(badge_id);
+					}
+				}
+			}
+		}
+		for(int i = 0 ; i< coding.length ; i++) {
+			if(coding[i] <= TotalCo) {
+				if(badgeValues.get("CO"+String.valueOf(coding[i]))==null){
+					String badge_id = agg_db.getBadgeIDBasedOnValue("CO"+String.valueOf(coding[i]));
+					if(badge_id != null) {
+						agg_db.insertNewBadgeForEachStudent(usr, grp, badge_id);
+						global_new_badge_id.add(badge_id);
+					}
+				}
+			}
+		}
+		for(int i = 0 ; i< challenge.length; i++) {
+			if(challenge[i] <= TotalCh) {
+				if(badgeValues.get("CH"+String.valueOf(challenge[i]))==null){
+					String badge_id = agg_db.getBadgeIDBasedOnValue("CH"+String.valueOf(challenge[i]));
+					if(badge_id != null) {
+						agg_db.insertNewBadgeForEachStudent(usr, grp, badge_id);
+						global_new_badge_id.add(badge_id);
+					}
+				}
+			}
+		}
+		for(int i = 0 ; i< example.length; i++) {
+			if(example[i] <= TotalEx) {
+				if(badgeValues.get("E"+String.valueOf(example[i]))==null){
+					String badge_id = agg_db.getBadgeIDBasedOnValue("E"+String.valueOf(example[i]));
+					if(badge_id !=null) {
+					agg_db.insertNewBadgeForEachStudent(usr, grp, badge_id);
+					global_new_badge_id.add(badge_id);
+					}
+				}
+			}
+		}
+		
+	}
 	
 	// TODO review
 	// @@@@ FEEDBACK generation. For now it is hardcoded
@@ -2318,7 +2382,8 @@ public class Aggregate {
 		recentPoints = agg_db.getFiveRecentPoints(usr, grp);
 		if(recentPoints != null) {
 			for (Logs log : recentPoints) {
-				output += "{ value: \"" + log.getValue() + "\", description: \"" + log.getDescription()
+				if(Integer.parseInt(log.getTotalPoint()) > 0)
+					output += "{ value: \"" + log.getValue() + "\", description: \"" + log.getDescription()
 						+ "\", totalPoint: \"" + log.getTotalPoint() + "\"},\n";
 			}
 		}
@@ -2342,18 +2407,15 @@ public class Aggregate {
 			}
 
 			;
-		} else if (!allOrUser && global_new_rec_badge_id != null) {
-			//System.out.println("global_new_rec_badge_id is :" + global_new_rec_badge_id);
-			Badges bdg = agg_db.getBadgeById(global_new_rec_badge_id);
-			output += "{id: \"" + bdg.getId() + "\", value: \"" + bdg.getValue() + "\", name: \"" + bdg.getName()
-					+ "\", type: \"" + bdg.getType() + "\", img_URL: \"" + bdg.getImgURL() + "\", congradulationMSG: \""
-					+ bdg.getCongradualationMSG() + "\" },\n";
-		} else if(!allOrUser && global_new_other_badge_id != null) {
-			Badges bdg = agg_db.getBadgeById(global_new_other_badge_id);
-			output += "{id: \"" + bdg.getId() + "\", value: \"" + bdg.getValue() + "\", name: \"" + bdg.getName()
-					+ "\", type: \"" + bdg.getType() + "\", img_URL: \"" + bdg.getImgURL() + "\", congradulationMSG: \""
-					+ bdg.getCongradualationMSG() + "\" },\n";
+		}else if (!allOrUser && global_new_badge_id.size() > 0) {
+			for(String bdgID: global_new_badge_id) {
+				Badges bdg = agg_db.getBadgeById(bdgID);
+				output += "{id: \"" + bdg.getId() + "\", value: \"" + bdg.getValue() + "\", name: \"" + bdg.getName()
+						+ "\", type: \"" + bdg.getType() + "\", img_URL: \"" + bdg.getImgURL() + "\", congradulationMSG: \""
+						+ bdg.getCongradualationMSG() + "\" },\n";
+			}
 		}
+
 		output = output.substring(0, output.length() - 2);
 		output += "\n]";
 		// closeDBConnections();

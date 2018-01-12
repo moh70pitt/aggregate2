@@ -805,7 +805,7 @@ public class AggregateDB extends dbInterface {
     List<Logs> res = new ArrayList<Logs>();
     try{
       stmt= conn.createStatement();
-      String query = "select * from ent_point e where e.user_id = '"+user_id+"' and e.group_id = '"+group_id+"' order by total_point + 0 desc limit 5 ;";
+      String query = "select * from ent_point e where e.user_id = '"+user_id+"' and e.group_id = '"+group_id+"' and e.total_point + 0 > 0 order by e.total_point + 0 desc limit 5 ;";
       rs = stmt.executeQuery(query);
       while(rs.next()){
         Logs l = new Logs(rs.getString("recent_point"), rs.getString("description"),rs.getString("total_point"));
@@ -831,10 +831,8 @@ public class AggregateDB extends dbInterface {
       System.out.println("query:"+ query);
       rs = stmt.executeQuery(query);
       while(rs.next()){
-      //if(rs!=null) {
     	  	System.out.println("recent_point: " + rs.getString("recent_point")+" description: "+ rs.getString("description")+ " total_point: "+ rs.getString("total_point"));
         res = new Logs(rs.getString("recent_point"), rs.getString("description"),rs.getString("total_point"));
-      //}
       }
       this.releaseStatement(stmt,rs);
 
@@ -1003,19 +1001,57 @@ public class AggregateDB extends dbInterface {
     }
   }
   public boolean insertRecentPoint(String user_id, String group_id, String recent_point, String description, String total_point){
-    try {
-      stmt =conn.createStatement();
-      String query = "insert into ent_point(user_id, group_id, recent_point, description, total_point) values('"+user_id+"', '"+group_id+"','"+recent_point+"','"+description+"','"+total_point+"');";
-      stmt.executeUpdate(query);
-      this.releaseStatement(stmt,rs);
-      return true;
-    } catch(SQLException ex){
-      System.out.println("SQLException: " + ex.getMessage());
-      System.out.println("SQLState: " + ex.getSQLState());
-      System.out.println("VendorError: " + ex.getErrorCode());
+	  try {
+		  stmt = conn.createStatement();
+		  String query = "select COUNT(*) AS total from ent_point where user_id = '"+user_id+"' and group_id = '"+group_id+"'";
+		  rs = stmt.executeQuery(query);
+		  int total=-1;
+		  while(rs.next()) {
+			  total = rs.getInt("total");
+		  }
+		  if(total != 5) {
+			  query = "insert into ent_point(user_id, group_id, recent_point, description, total_point) values('"+user_id+"', '"+group_id+"','"+recent_point+"','"+description+"','"+total_point+"')";
+			  stmt.executeUpdate(query);
+			  for(int i =0 ; i<4 ; i++) {
+				  query = "insert into ent_point(user_id, group_id, recent_point, description, total_point) values('"+user_id+"', '"+group_id+"','0',' ','"+String.valueOf((-1)*(i+1))+"')";
+				  stmt.executeUpdate(query);
+			  }
+		  }
+		  else {
+			  query = "select min(total_point+0) as minimum from ent_point where user_id = '"+user_id+"' and group_id = '"+group_id+"'";
+			  rs = stmt.executeQuery(query);
+			  int minimum = 0;
+			  while(rs.next()) {
+				  minimum = rs.getInt("minimum");
+			  }
+			  query = "update ent_point set recent_point = '"+recent_point+"' and description ='"+description+"' and total_point ='"+total_point+"'  where user_id = '"+user_id+"' and group_id='" + group_id + "' and total_point = '"+String.valueOf(minimum)+"'";
+			  stmt.executeUpdate(query);
+		  }
+		  this.releaseStatement(stmt, rs);
+		  return true;
+	  }catch(SQLException ex) {
+		  System.out.println("SQLException: " + ex.getMessage());
+	      System.out.println("SQLState: " + ex.getSQLState());
+	      System.out.println("VendorError: " + ex.getErrorCode());
+	
+	      this.releaseStatement(stmt, rs);
+	      return false;
+	  }
+  }
+  public boolean insertRecentPointToHistoryTable(String user_id, String group_id, String recent_point, String description, String total_point, String content_name, String provider_id) {
+	  try {
+	      stmt =conn.createStatement();
+	      String query = "insert into ent_point_history(user_id, group_id, recent_point, description, total_point, content_name, provider_id) values('"+user_id+"', '"+group_id+"','"+recent_point+"','"+description+"','"+total_point+"','"+content_name+"','"+provider_id+"');";
+	      stmt.executeUpdate(query);
+	      this.releaseStatement(stmt,rs);
+	      return true;
+	    } catch(SQLException ex){
+	      System.out.println("SQLException: " + ex.getMessage());
+	      System.out.println("SQLState: " + ex.getSQLState());
+	      System.out.println("VendorError: " + ex.getErrorCode());
 
-      this.releaseStatement(stmt, rs);
-      return false;
-    }
+	      this.releaseStatement(stmt, rs);
+	      return false;
+	    }
   }
 }
