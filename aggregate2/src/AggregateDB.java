@@ -904,7 +904,6 @@ public class AggregateDB extends dbInterface {
       System.out.println("SQLException: " + ex.getMessage());
       System.out.println("SQLState: " + ex.getSQLState());
       System.out.println("VendorError: " + ex.getErrorCode());
-
       this.releaseStatement(stmt, rs);
       return false;
 
@@ -1024,8 +1023,8 @@ public class AggregateDB extends dbInterface {
 			  while(rs.next()) {
 				  minimum = rs.getInt("minimum");
 			  }
-			  query = "update ent_point set recent_point = '"+recent_point+"' and description ='"+description+"' and total_point ='"+total_point+"'  where user_id = '"+user_id+"' and group_id='" + group_id + "' and total_point = '"+String.valueOf(minimum)+"'";
-			  stmt.executeUpdate(query);
+			  String query2 = "update ent_point set recent_point = '"+recent_point+"' , description ='"+description+"' , total_point ='"+total_point+"'  where user_id = '"+user_id+"' and group_id='" + group_id + "' and total_point = '"+String.valueOf(minimum)+"'";
+			  stmt.executeUpdate(query2);
 		  }
 		  this.releaseStatement(stmt, rs);
 		  return true;
@@ -1033,7 +1032,6 @@ public class AggregateDB extends dbInterface {
 		  System.out.println("SQLException: " + ex.getMessage());
 	      System.out.println("SQLState: " + ex.getSQLState());
 	      System.out.println("VendorError: " + ex.getErrorCode());
-	
 	      this.releaseStatement(stmt, rs);
 	      return false;
 	  }
