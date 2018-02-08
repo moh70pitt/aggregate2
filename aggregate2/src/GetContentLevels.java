@@ -39,7 +39,7 @@ public class GetContentLevels extends HttpServlet {
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		response.setContentType("application/json");
+		response.setContentType("application/json;charset=utf-8");
 		response.setHeader("Access-Control-Allow-Origin", "*");
 		// response.setHeader("Access-Control-Allow-Origin", "http://localhost");
 		time0 = Calendar.getInstance().getTimeInMillis();
