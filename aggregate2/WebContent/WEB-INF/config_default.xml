@@ -24,7 +24,7 @@
     <agg_line_rec_enabled>no</agg_line_rec_enabled>
 
 	<!-- VERBOSE -->
-    <agg_verbose>yes</agg_verbose>
+    <agg_verbose>false</agg_verbose>
 
 	<!-- DATA INCLUDED -->
     <agg_include_null_users>no</agg_include_null_users>

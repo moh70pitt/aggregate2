@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.codehaus.jettison.json.JSONObject;
+
 /**
  * This is the main class. An Aggregate object obtains the course structure
  * (topics, content) from aggregate DB and the levels of knowledge and progress
@@ -1842,6 +1844,29 @@ public class Aggregate {
 		res += "\n}";
 		return res;
 	}
+	
+	public String genJSONConfigProperties() {
+		String configProperties = "";
+		try {
+			JSONObject configuration = new JSONObject();
+			
+			configuration.put("agg_proactiverec_enabled", cm.agg_proactiverec_enabled);
+			configuration.put("agg_proactiverec_threshold", cm.agg_proactiverec_threshold);
+			configuration.put("agg_proactiverec_method", cm.agg_proactiverec_method);
+			configuration.put("agg_proactiverec_max", cm.agg_proactiverec_max);
+			configuration.put("agg_reactiverec_enabled", cm.agg_reactiverec_enabled);
+			configuration.put("agg_reactiverec_threshold", cm.agg_reactiverec_threshold);
+			configuration.put("agg_reactiverec_method", cm.agg_reactiverec_method);
+			configuration.put("agg_reactiverec_max", cm.agg_reactiverec_max);
+			configuration.put("agg_line_rec_enabled", cm.agg_line_rec_enabled);
+			
+			configProperties = configuration.toString(4);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return "configprops:" + configProperties;
+	}
 
 	public String genJSONTopics() {
 		String topics = "  topics:[  \n";
@@ -2319,6 +2344,7 @@ public class Aggregate {
 
 		String header = genJSONHeader();
 		String visprop = genJSONVisProperties();
+		String configprop = genJSONConfigProperties();
 		String topics = genJSONTopics();
 		String kcs = genJSONKCs();
 
@@ -2356,7 +2382,7 @@ public class Aggregate {
 		String recCounts = genTotalRecJSON();
 
 		return header + ",\n" + topics + ",\n" + (cm.agg_kcmap ? (kcs + ",\n") : "") + learners + ",\n" + aggs_levels
-				+ ",\n" + visprop + ",\n" + logs + ",\n" + badges + ",\n" + recCounts + "\n}";
+				+ ",\n" + visprop + ",\n" + configprop + ",\n" + logs + ",\n" + badges + ",\n" + recCounts + "\n}";
 	}
 
 	// REVIEW generate the main JSON response for the logged in user
