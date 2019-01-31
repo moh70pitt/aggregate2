@@ -1,2 +1,3 @@
 /build/
 aggregate2/src/DBConnectionManager.java
+aggregate2/WebContent/WEB-INF/config.xml
