@@ -5,3 +5,4 @@
 .metadata
 .DS_Store
 aggregate2/WebContent/WEB-INF/classes
+aggregate2/WebContent/WEB-INF/config.xml
