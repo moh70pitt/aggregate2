@@ -11,14 +11,14 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Servlet implementation class StoreFeedback
  */
-@WebServlet("/TrackAction")
-public class TrackAction extends HttpServlet {
+@WebServlet("/UserPreference")
+public class UserPreference extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
-	public TrackAction() {
+	public UserPreference() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
@@ -49,12 +49,15 @@ public class TrackAction extends HttpServlet {
 		String grp = request.getParameter("grp"); // the class mnemonic (as defined in KT)
 		String sid = request.getParameter("sid"); // session id
 
-		String action = request.getParameter("action");
+		String parameterName = request.getParameter("parameter-name");
+		String parameterValue = request.getParameter("parameter-value");
+		String appName = request.getParameter("app-name");
+		String userContext = request.getParameter("user-context");
 
 		ConfigManager cm = new ConfigManager(this); // this object gets the
 		AggregateDB agg_db = new AggregateDB(cm.agg_dbstring,cm.agg_dbuser, cm.agg_dbpass);
 		agg_db.openConnection();
-		if(agg_db.insertTrackAction(usr, grp, sid, action, "")) 
+		if(agg_db.updateUserPreference(usr, grp, sid, appName, parameterName, parameterValue, userContext)) 
 			output="{res=1}";
 		else 
 			output="{res=0}";

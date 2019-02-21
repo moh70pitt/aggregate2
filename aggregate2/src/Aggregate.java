@@ -129,6 +129,8 @@ public class Aggregate {
 	private boolean kcJSONById = true;
 
 	private String userManualFile = "";
+	
+	private HashMap<String,String> userPreferences = new HashMap<String,String>();
 
 	
 	private List<String> global_new_badge_id = new ArrayList<>();
@@ -170,6 +172,7 @@ public class Aggregate {
 			this.cid = cid;
 		}
 		domain = agg_db.getDomain(cid);
+		System.out.println("Course domain: "+domain);
 		if (domain == null || domain.length() == 0) {
 			this.cid = agg_db.getCourseId(grp);
 			this.domain = "UNKNOWN";
@@ -201,6 +204,8 @@ public class Aggregate {
 		}
 
 		processParameters(agg_db.getParameters(usr, grp));
+		
+		this.userPreferences = agg_db.getLastUserPreferences(this.usr, this.grp, "MasteryGrids");
 
 		class_list = um_interface.getClassList(grp, cm.agg_uminterface_key);
 		if (class_list == null) {
@@ -245,6 +250,7 @@ public class Aggregate {
 		if (cm.agg_kcmap) {
 			// Get the KC from the database. It includes single and multiple components
 			// groups
+			System.out.println("agg_kcmap value: "+cm.agg_kcmap);
 			allKCList = agg_db.getAllKCs(domain);
 			separateKCList(allKCList);
 
@@ -253,6 +259,7 @@ public class Aggregate {
 		userContentSequences = new HashMap<String, String>();
 		// This part computed the user model if updateUM = true or if the user
 		// has no pre-computed model stored in the db (first log in)
+		System.out.println("Update UM: "+updateUM);
 		if (updateUM) {
 			computeUserLevels(usr, grp, sid, cid, domain);
 			// computeUserBadges(usr,grp,domain);
@@ -261,10 +268,14 @@ public class Aggregate {
 			storeComputedModel(usr);
 			// storeComputedBadges();
 			// storeComputedPoints();
-		} else if (!agg_db.existComputedModel(usr, cid)) {
-			computeNullLevels();
-			// storePrecomputedModel(usr);
-			storeComputedModel(usr);
+		} else{
+			if (!agg_db.existComputedModel(usr, cid)) {
+				computeNullLevels();
+				// storePrecomputedModel(usr);
+				storeComputedModel(usr);	
+			}else{
+				computeUserLevels(usr, grp, sid, cid, domain);
+			}
 		}
 
 		subgroups = agg_db.getSubGroups(grp);
@@ -422,6 +433,7 @@ public class Aggregate {
 		// @@@@ JULIO
 		// COMPUTE LEVELS FOR KCs
 		if (cm.agg_kcmap) {
+			System.out.println("Entered to KC estimation...");
 			KCModeler kcModeler = new KCModeler(usr, domain, cid, singleKCList, groupedKCList, contentList,
 					cm.agg_kcmap_method, domain, cm.servletSource.getServletContext());
 
@@ -470,8 +482,16 @@ public class Aggregate {
 			//
 			//
 			// }else{ // use naive
-			userKCLevels = kcModeler.computeNaiveKCModel(hashMapActivity, domain);
-			// }
+			
+			System.out.println("agg_kcmap_method: "+cm.agg_kcmap_method);
+			if(cm.agg_kcmap_method.equalsIgnoreCase("naive")){
+				userKCLevels = kcModeler.computeNaiveKCModel(hashMapActivity, domain);
+			}else{
+				if(cm.agg_kcmap_method.equalsIgnoreCase("cumulate")){
+					System.out.println("verbose: "+verbose);
+					userKCLevels = kcModeler.computeCUMULATEKCModel(hashMapActivity, domain, grp);
+				}
+			}
 
 		}
 
@@ -884,24 +904,81 @@ public class Aggregate {
 		if (subgroups != null && subgroups.size() > 0) {
 			for (String[] subgroup : subgroups) {
 				String subgroupName = subgroup[0];
-				String[] peers = subgroup[1].split(",");
-				ArrayList<String> sub_peers = new ArrayList<String>();
-				ArrayList<String> sub_peers_anonym = new ArrayList<String>();
-				for (String peer : peers) {
-					sub_peers.add(peer);
-					if (!peer.equalsIgnoreCase(usr))
-						sub_peers_anonym.add(getAnonymIdByUser(peer));
-					else
-						sub_peers_anonym.add(peer);
+				if(!subgroupName.equals("lower_performance") && !subgroupName.equals("higher_performance")){
+					String[] peers = subgroup[1].split(",");
+					ArrayList<String> sub_peers = new ArrayList<String>();
+					ArrayList<String> sub_peers_anonym = new ArrayList<String>();
+					for (String peer : peers) {
+						sub_peers.add(peer);
+						if (!peer.equalsIgnoreCase(usr))
+							sub_peers_anonym.add(getAnonymIdByUser(peer));
+						else
+							sub_peers_anonym.add(peer);
 
-				}
-				if (sub_peers.size() > 0) {
-					subgroups_student_ids.add(sub_peers);
-					subgroups_student_anonym_ids.add(sub_peers_anonym);
-					subgroups_names.add(subgroupName);
-					subgroups_topic_levels.add(computeSubGroupTopicLevels(sub_peers));
-					subgroups_content_levels.add(computeSubGroupContentLevels(sub_peers));
-					subgroups_kc_levels.add(computeSubGroupKCLevels(sub_peers));
+					}
+					if (sub_peers.size() > 0) {
+						subgroups_student_ids.add(sub_peers);
+						subgroups_student_anonym_ids.add(sub_peers_anonym);
+						subgroups_names.add(subgroupName);
+						subgroups_topic_levels.add(computeSubGroupTopicLevels(sub_peers));
+						subgroups_content_levels.add(computeSubGroupContentLevels(sub_peers));
+						subgroups_kc_levels.add(computeSubGroupKCLevels(sub_peers));
+					}
+				}else{
+					if(subgroupName.equals("higher_performance")){
+						ArrayList<String> higherPerfomancePeers = new ArrayList<String>();
+						ArrayList<String> higherPerformancePeersAnonym = new ArrayList<String>();
+						int halfIndex = (int) (class_list.size()/2);
+						int i = 0;
+						for (int j = 0; j < class_list.size() && i < halfIndex; j++) {
+							String learner_id = class_list.get(j)[0];
+							String learnerAnonymId = class_list.get(j)[3];
+							if (non_students.get(learner_id) == null) {
+								higherPerfomancePeers.add(learner_id);
+								if (learner_id.equalsIgnoreCase(usr))
+									higherPerformancePeersAnonym.add(learner_id);
+								else
+									higherPerformancePeersAnonym.add(learnerAnonymId);
+								i++;
+							}
+
+						}
+
+						subgroups_student_ids.add(higherPerfomancePeers);
+						subgroups_student_anonym_ids.add(higherPerformancePeersAnonym);
+						subgroups_names.add("Higher progress");
+						subgroups_topic_levels.add(computeSubGroupTopicLevels(higherPerfomancePeers));
+						subgroups_content_levels.add(computeSubGroupContentLevels(higherPerfomancePeers));
+						subgroups_kc_levels.add(computeSubGroupKCLevels(higherPerfomancePeers));
+						
+					}else if(subgroupName.equals("lower_performance")){
+
+						ArrayList<String> lowerPerfomancePeers = new ArrayList<String>();
+						ArrayList<String> lowerPerformancePeersAnonym = new ArrayList<String>();
+						int halfIndex = (int) class_list.size()/2;
+						int i = 0;
+						for (int j = halfIndex; j < class_list.size(); j++) {
+							String learner_id = class_list.get(j)[0];
+							String learnerAnonymId = class_list.get(j)[3];
+							if (non_students.get(learner_id) == null) {
+								lowerPerfomancePeers.add(learner_id);
+								if (learner_id.equalsIgnoreCase(usr))
+									lowerPerformancePeersAnonym.add(learner_id);
+								else
+									lowerPerformancePeersAnonym.add(learnerAnonymId);
+								i++;
+							}
+
+						}
+
+						subgroups_student_ids.add(lowerPerfomancePeers);
+						subgroups_student_anonym_ids.add(lowerPerformancePeersAnonym);
+						subgroups_names.add("Lower progress");
+						subgroups_topic_levels.add(computeSubGroupTopicLevels(lowerPerfomancePeers));
+						subgroups_content_levels.add(computeSubGroupContentLevels(lowerPerfomancePeers));
+						subgroups_kc_levels.add(computeSubGroupKCLevels(lowerPerfomancePeers));
+
+					}
 				}
 			}
 		}
@@ -1676,7 +1753,7 @@ public class Aggregate {
 				}
 			if (pair[0].equalsIgnoreCase("kcMapMethod"))
 				cm.agg_kcmap_method = pair[1].trim();
-
+				
 		}
 	}
 
@@ -1718,7 +1795,7 @@ public class Aggregate {
 	public void separateKCList(HashMap<String, KnowledgeComponent> allKCList) {
 		singleKCList = new HashMap<String, KnowledgeComponent>();
 		groupedKCList = new HashMap<String, KnowledgeComponentGroup>();
-		for (Map.Entry<String, KnowledgeComponent> kcEntry : allKCList.entrySet()) {
+		for (Map.Entry<String, KnowledgeComponent> kcEntry : allKCList.entrySet()){
 			KnowledgeComponent kc = kcEntry.getValue();
 			// @@@@ for groups of KC, check if all kcs on the group are in the list
 			if (kc instanceof KnowledgeComponentGroup) {
@@ -1767,7 +1844,7 @@ public class Aggregate {
 			int[] levels = new int[3]; // @@@@ count concepts in three categories: not known, learning, mastered
 			activityConceptCounts.put(content_name, levels);
 		}
-
+		
 		// the model of the user
 		Map<String, double[]> student_kc_l = peers_kc_levels.get(usr);
 		if (student_kc_l == null)
@@ -1776,7 +1853,7 @@ public class Aggregate {
 		// activities, update the counting
 
 		double[] levels = null;
-		;
+		
 		for (Map.Entry<String, KnowledgeComponent> kcEntry : singleKCList.entrySet()) {
 			KnowledgeComponent kc = kcEntry.getValue();
 			if (student_kc_l != null) {
@@ -1833,6 +1910,19 @@ public class Aggregate {
 		}
 		res += "},";
 		res += "\n      user:{";
+		
+		//Added by @Jordan to iterate and add latest user preferences
+		System.out.println("User preferences to JSON");
+		for (Map.Entry<String, String> parameterInfo : this.userPreferences.entrySet()) {
+		    String parameterName = parameterInfo.getKey();
+		    String parameterValue = parameterInfo.getValue();
+		    res += ""+parameterName+":\""+parameterValue+"\",";
+		}
+		//Remove an additional comma which does not have to be there
+		if(this.userPreferences.size()>0){
+			res=res.substring(0, res.length()-1);
+		}
+		
 		if (userParameters != null) {
 			if (userParameters[0] != null)
 				res += userParameters[0];
@@ -1936,7 +2026,6 @@ public class Aggregate {
 
 	public String genJSONKCs() {
 		String kcs = "  kcs:[  \n";
-
 		if (singleKCList != null) {
 			for (Map.Entry<String, KnowledgeComponent> kcEntry : singleKCList.entrySet()) {
 				KnowledgeComponent kc = kcEntry.getValue();
@@ -1960,6 +2049,7 @@ public class Aggregate {
 	}
 
 	public String genJSONLearnerState(String student) {
+
 		String res = "  state:{\n";
 		Map<String, double[]> student_t_l = null;
 		if (peers_topic_levels != null)
@@ -2118,6 +2208,7 @@ public class Aggregate {
 
 		
 		if (student.equalsIgnoreCase(usr) && cm.agg_kcmap) {
+			
 			String kc_levels = "    kcs:{  \n";
 
 			double[] levels = null;
@@ -2133,12 +2224,15 @@ public class Aggregate {
 						levels = new double[nKCLevels];
 
 					}
+					System.out.println(Arrays.toString(levels));
 					if (kcJSONById) {
 						kc_levels += "       " + kc.getId() + ": {\"k\":" + df.format(levels[0]) + ",\"p\":"
-								+ df.format(levels[1]) + "},\n";
+								+ df.format(levels[1]) + ",\"sr\":"
+										+ df.format(levels[3]) + "},\n";
 					} else
 						kc_levels += "       \"" + kc.getIdName() + "\": {\"k\":" + df.format(levels[0]) + ",\"p\":"
-								+ df.format(levels[1]) + "},\n";
+								+ df.format(levels[1]) + ",\"sr\":"
+										+ df.format(levels[1]) + "},\n";
 
 				}
 			}

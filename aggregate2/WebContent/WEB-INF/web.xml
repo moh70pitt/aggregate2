@@ -49,4 +49,12 @@
     <servlet-name>SetNonStudents</servlet-name>
     <url-pattern>/SetNonStudents</url-pattern>
   </servlet-mapping>
+    <servlet>
+    <servlet-name>UserPreference</servlet-name>
+    <servlet-class>UserPreference</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>UserPreference</servlet-name>
+    <url-pattern>/UserPreference</url-pattern>
+  </servlet-mapping>
 </web-app>

@@ -706,13 +706,13 @@ public class AggregateDB extends dbInterface {
 						+ " FROM kc_component KC, kc_content_component CC"
 						+ " WHERE  KC.component_name = CC.component_name and KC.active=1 AND CC.active=1 and KC.domain='"+domain+"' AND CC.domain = KC.domain"
 						+ " GROUP BY KC.cardinality ASC, CC.component_name ASC";
-			//System.out.println(query);
 			rs = stmt.executeQuery(query);
 
 			while (rs.next()) {
 				int id = rs.getInt("id");
 				int cardinality = rs.getInt("cardinality");
 				String name = rs.getString("component_name");
+				System.out.println(name);//added by @Jordan
 				double th1 = rs.getDouble("threshold1");
 				double th2 = rs.getDouble("threshold2");
 				KnowledgeComponent c;
@@ -1052,4 +1052,56 @@ public class AggregateDB extends dbInterface {
 	      return false;
 	    }
   }
+  
+  //Register a change in the users preference regarding the GUI they are using for accessing the educational content
+  public boolean updateUserPreference(String userId, String groupId, String sessionId, String appName, String parameterName, String parameterValue, String userContext) {
+	  try {
+	      stmt =conn.createStatement();
+	      String query = "INSERT INTO ent_user_preferences(user_id, group_id, session_id, app_name, parameter_name, parameter_value, user_context, datetime) values('"+userId+"', '"+groupId+"','"+sessionId+"','"+appName+"','"+parameterName+"','"+parameterValue+"','"+userContext+"',CURRENT_TIMESTAMP(3));";
+	      stmt.executeUpdate(query);
+	      this.releaseStatement(stmt,rs);
+	      return true;
+	    } catch(SQLException ex){
+	      System.out.println("SQLException: " + ex.getMessage());
+	      System.out.println("SQLState: " + ex.getSQLState());
+	      System.out.println("VendorError: " + ex.getErrorCode());
+
+	      this.releaseStatement(stmt, rs);
+	      return false;
+	    }
+  }
+  
+  public HashMap<String,String> getLastUserPreferences(String userId, String groupId, String appName) {
+	  HashMap<String,String> userPreferences = new HashMap<String,String>();
+	  try {
+          stmt = conn.createStatement();
+          //String query = "SELECT id, parameter_name, parameter_value, MAX(datetime) from ent_user_preferences  WHERE user_id = '"
+          //        + userId + "' AND group_id='"+groupId+"' AND app_name='"+appName+"' GROUP BY id;";
+          String query = "SELECT pref.* FROM (SELECT parameter_name,MAX(datetime) AS latest_date FROM ent_user_preferences WHERE user_id = '"+ userId + "' AND group_id='"+groupId+"' AND app_name='"+appName+"' GROUP BY parameter_name) latest "+
+        		         "JOIN ent_user_preferences pref ON latest.parameter_name =pref.parameter_name "+
+        		         "AND latest.latest_date =pref.datetime "+
+        		         "WHERE user_id = '"+ userId + "' AND group_id='"+groupId+"' AND app_name='"+appName+"';";
+          //System.out.println(query);
+          rs = stmt.executeQuery(query);
+          System.out.println("User preferences: ");
+          while (rs.next()) {
+              String parameterName = rs.getString("parameter_name");
+              String parameterValue = rs.getString("parameter_value");
+              System.out.println(parameterName+": "+parameterValue);
+              userPreferences.put(parameterName, parameterValue);
+          }
+          this.releaseStatement(stmt, rs);
+          
+      } catch (SQLException ex) {
+          this.releaseStatement(stmt, rs);
+          System.out.println("SQLException: " + ex.getMessage());
+          System.out.println("SQLState: " + ex.getSQLState());
+          System.out.println("VendorError: " + ex.getErrorCode());
+      } finally {
+          this.releaseStatement(stmt, rs);
+      }
+	  return userPreferences;
+  }
+  
+  
 }

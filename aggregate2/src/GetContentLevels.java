@@ -41,6 +41,7 @@ public class GetContentLevels extends HttpServlet {
 			throws ServletException, IOException {
 		
 		try {
+			System.out.println("GetContentLevels start...");
 			response.setContentType("application/json;charset=utf-8");
 			response.setHeader("Access-Control-Allow-Origin", "*");
 			// response.setHeader("Access-Control-Allow-Origin", "http://localhost");
@@ -58,6 +59,12 @@ public class GetContentLevels extends HttpServlet {
 			String usr = request.getParameter("usr"); // user name
 			String sid = request.getParameter("sid"); // session id
 			String cid = request.getParameter("cid"); // course id (for content)
+			
+			System.out.println("mod: "+mod);
+			System.out.println("grp: "+grp);
+			System.out.println("usr :"+usr);
+			System.out.println("sid: "+sid);
+			System.out.println("cid: "+cid);
 
 			// @@@@ JULIO KCMAP
 			boolean kcMap = request.getParameter("kcmap") != null; // include Knowledge Components (concept map).
@@ -108,6 +115,7 @@ public class GetContentLevels extends HttpServlet {
 			// the main object
 			Aggregate aggregate;
 			String output = "";
+			
 			if (mod == null || mod.length() == 0 || mod.equalsIgnoreCase("all")) {
 				// this crates all structures, fill the information and computes the
 				// up to date user model
@@ -135,7 +143,7 @@ public class GetContentLevels extends HttpServlet {
 						System.out.println(
 								"Recommendations            " + (Calendar.getInstance().getTimeInMillis() - time1));
 				}
-
+				
 				// time1 = Calendar.getInstance().getTimeInMillis();
 				// aggregate.getContentStats();
 				// if(verbose) System.out.println("Gen JSON " +
@@ -216,6 +224,7 @@ public class GetContentLevels extends HttpServlet {
 			}
 			time1 = Calendar.getInstance().getTimeInMillis();
 			out.print(output);
+			System.out.println("Printing aggregate test");
 			if (verbose)
 				System.out.println("Printing output          " + (Calendar.getInstance().getTimeInMillis() - time1));
 			if (verbose)
