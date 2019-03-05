@@ -270,10 +270,12 @@ public class Aggregate {
 			// storeComputedPoints();
 		} else{
 			if (!agg_db.existComputedModel(usr, cid)) {
+				System.out.println("Compute null levels");
 				computeNullLevels();
 				// storePrecomputedModel(usr);
 				storeComputedModel(usr);	
 			}else{
+				System.out.println("Compute user levels");
 				computeUserLevels(usr, grp, sid, cid, domain);
 			}
 		}
@@ -1949,6 +1951,7 @@ public class Aggregate {
 			configuration.put("agg_reactiverec_method", cm.agg_reactiverec_method);
 			configuration.put("agg_reactiverec_max", cm.agg_reactiverec_max);
 			configuration.put("agg_line_rec_enabled", cm.agg_line_rec_enabled);
+			configuration.put("agg_kc_student_modeling", cm.agg_kcmap_method);
 			
 			configProperties = configuration.toString(4);
 		} catch (Exception e) {
@@ -2353,6 +2356,7 @@ public class Aggregate {
 			}
 
 			kc_levels = kc_levels.substring(0, kc_levels.length() - 2);
+
 			kc_levels += "\n    }";
 		}
 		String learnersids = "learnerIds:[  ";
@@ -2441,7 +2445,7 @@ public class Aggregate {
 		String configprop = genJSONConfigProperties();
 		String topics = genJSONTopics();
 		String kcs = genJSONKCs();
-
+		
 		if (!this.includeOthers)
 			n = 0;
 

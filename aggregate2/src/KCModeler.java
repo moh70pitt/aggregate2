@@ -386,6 +386,7 @@ public class KCModeler {
 //		return net;
 //	}
 	
+	
 	/*
 	 * singleKCIdToBNKnowledge is null for native method
 	 */
@@ -642,19 +643,21 @@ public class KCModeler {
 //	}
 	
 	
-//	public HashMap<String, double[]> computeNaiveKCModel(HashMap<String, Activity> activity, String domain){
-//		System.out.println("COMPUTING KC K,P USING NAIVE");
-//		HashMap<String, Double> cbumK = null;
+	public HashMap<String, double[]> computeCUMULATEKCModel(HashMap<String, Activity> activity, String domain, String grp){
+		System.out.println("COMPUTING KC K,P USING CUMULATE");
+		HashMap<String, Double> cbumK = null;
 //		boolean useCBUM = domain.equalsIgnoreCase("java");
 //		if(useCBUM){
-//			cbumK = getConceptLevels(usr, domain, grp);
+		cbumK = getConceptLevels(usr, domain, grp);
 //		}
-//		
-//		HashMap<String, double[]> res = new HashMap<String, double[]>();
-//		// 1 for each KC, count how many activities which contributes there are, and how many has been completed by student
-//		HashMap<String, int[]> sumKCGroups = new HashMap<String, int[]>(); // int[]: 0: n act contributing, 1: N act done,
-//		// first for groups of kc
-//		
+		
+		HashMap<String, double[]> res = new HashMap<String, double[]>();
+		
+		//All of this commented by @Jordan, as for CUMULATE we are not considering KCs combinations
+		// 1 for each KC, count how many activities which contributes there are, and how many has been completed by student
+		//HashMap<String, int[]> sumKCGroups = new HashMap<String, int[]>(); // int[]: 0: n act contributing, 1: N act done,
+		// first for groups of kc
+		
 //		for (Map.Entry<String, KnowledgeComponentGroup> kcGroupEntry : groupedKCList.entrySet()) {
 //			String kcName = kcGroupEntry.getKey();
 //			KnowledgeComponentGroup kc = kcGroupEntry.getValue();
@@ -700,35 +703,49 @@ public class KCModeler {
 //			levels[6] = -1;
 //			res.put(kc.getId()+"",levels);
 //		}
-//		for (Map.Entry<String, KnowledgeComponent> kcEntry : singleKCList.entrySet()) {
-//			String kcName = kcEntry.getKey();
-//			KnowledgeComponent kc = kcEntry.getValue();
-//			ArrayList<String> contents = kc.getContentList(false, 1);
-//			int nCntDone = 0;
-//			int nCntTried = 0;
-//			int nAttempts = 0;
-//			double sr = 0.0;
-//			int[] kcCounts = new int[4];
-//			// count activities contributing to K and activities done
-//			for(String c:contents){
-//				
-//				Activity a = activity.get(c);
-//				if(a != null){
-//					double[] levels = a.getLevels();
-//					if(levels != null && levels.length>1){
-//						if(levels[3] > -1) nCntTried++; // only count the success rate when it is different than -1
-//						// check if progress is 1
-//						if(((int)levels[1]) == 1){
-//							nCntDone++;
-//						}
-//						nAttempts += levels[2];
-//						if(levels[3] > -1) sr += levels[3];
-//					}
-//				}
-//			}
-//			kcCounts[0] = contents.size();
-//			kcCounts[1] = nCntDone;
-//			// count groups in which the kc participate
+		for (Map.Entry<String, KnowledgeComponent> kcEntry : singleKCList.entrySet()) {
+			String kcName = kcEntry.getKey();
+			KnowledgeComponent kc = kcEntry.getValue();
+			ArrayList<String> contents = kc.getContentList(false, 1);
+			int nCntDone = 0;
+			int nCntTried = 0;
+			int nAttempts = 0;
+			double sr = 0.0;
+			int[] kcCounts = new int[4];
+			// count activities contributing to K and activities done
+			int nonNullActivities = 0;
+			for(String c:contents){
+				
+				Activity a = activity.get(c);
+				if(a != null){
+					double[] levels = a.getLevels();
+					if(levels != null && levels.length>1){
+						
+						if((int)levels[3] > -1) nCntTried++; // only count the success rate when it is different than -1
+						// check if progress is 1
+						if(((int)levels[1]) == 1){
+							nCntDone++;
+						}
+						nAttempts += levels[2];
+						if((double)levels[3] > -1){
+							sr += (double)levels[3];
+							nonNullActivities++;
+							//TODO: should I consider when SR is 0 but they have not attempted the activity???
+							//System.out.println("Activity "+a.getName()+" success rate: "+levels[3]);
+						}
+					}
+				}
+			}
+			if(sr>0.0) sr = sr/nonNullActivities;//Added by Jordan, it gets average success rate, as in the previous for loop they were only summed up
+			
+			//Added by @Jordan
+			//System.out.println("Final value of success rate for "+kcName+" : "+sr);
+			
+			kcCounts[0] = contents.size();
+			kcCounts[1] = nCntDone;
+			
+			//All of this commented by @Jordan, as for CUMULATE we are not considering KCs combinations
+			// count groups in which the kc participate
 //			int countKCGroups = 0;
 //			int countKCGroupsDone = 0;
 //			for (Map.Entry<String, KnowledgeComponentGroup> kcGroupEntry : groupedKCList.entrySet()) {
@@ -737,43 +754,47 @@ public class KCModeler {
 //					countKCGroups++;
 //					int[] v = sumKCGroups.get(kcGroup.getId()+"");
 //					// TODO Check formula to infer groups done
-//					if(v!=null && v[1] > v[0]/2) countKCGroupsDone++; 
+//					if(v!=null && v[1] > v[0]/2) countKCGroupsDone++;
 //				}
 //			}
 //			kcCounts[2] = countKCGroups;
 //			kcCounts[3] = countKCGroupsDone;
-//			//sumKC.put(kc.getId()+"", kcCounts);
-//			
-//			// add the kc and its levels
-//			double[] levels = new double[Aggregate.nKCLevels]; 
-//			double div1 = (kcCounts[0] > 0 ? kcCounts[0] : 1);
-//			double div2 = (kcCounts[2] > 0 ? kcCounts[2] : 1);
-//			
-//			// single computed knowledge of the KC as a proportion of related activities done
-//			double singleK =  kcCounts[1] / div1;
-//			// replace singleK with the K of the concept reported by CBUM
+
+			
+			// add the kc and its levels
+			double[] levels = new double[Aggregate.nKCLevels]; 
+			double div1 = (kcCounts[0] > 0 ? kcCounts[0] : 1);
+			//double div2 = (kcCounts[2] > 0 ? kcCounts[2] : 1);
+			
+			// single computed knowledge of the KC as a proportion of related activities done
+			double singleK =  kcCounts[1] / div1;
+			// replace singleK with the K of the concept reported by CBUM
 //			if(useCBUM && cbumK != null && cbumK.size() > 0){
-//				Double kcK = cbumK.get(kc.getIdName());
-//				if(kcK != null) singleK = kcK;
-//			}
-//			
-//			
-//			if(countKCGroups>1) levels[0] = (kcCounts[3] / div2 + singleK) / 2.0; // knowledge is average of content covered and connections done
-//			else levels[0] = singleK;
-//			levels[1] = kcCounts[1] / div1; // progress is content done / total content related to the kc
-//			
-//			levels[2] = nAttempts;
-//			levels[3] = sr;
-//			levels[4] = nCntDone;
-//			levels[5] = kcCounts[3];
-//			levels[6] = -1;
-//			
-//			res.put(kc.getId()+"",levels);
-//			
-//		}
-//		return res; //place holder, returning all levels in 0
-//	}
-//	
+			Double kcK = cbumK.get(kc.getIdName());
+			if(kcK != null){
+				singleK = kcK;
+				System.out.println(kc.getIdName()+ " Kc level: "+singleK);
+			}else{
+				System.out.println(kc.getIdName()+ " it is not provided by CUMULATE");
+			}
+			
+			
+			//if(countKCGroups>1) levels[0] = (kcCounts[3] / div2 + singleK) / 2.0; // knowledge is average of content covered and connections done
+			//else 
+			levels[0] = singleK;
+			levels[1] = kcCounts[1] / div1; // progress is content done / total content related to the kc
+			levels[2] = nAttempts;
+			levels[3] = sr;
+			levels[4] = nCntDone;
+			levels[5] = -1;//kcCounts[3];//Commented by @Jordan as in CUMULATE we do not consider KCs combinations
+			levels[6] = -1;
+			
+			res.put(kc.getId()+"",levels);
+			
+		}
+		return res; //place holder, returning all levels in 0
+	}
+	
 	
 	//use numeric ids
 	public  HashMap<String, double[]> nullKCLevels() {
@@ -784,12 +805,13 @@ public class KCModeler {
 			double[] levels = new double[Aggregate.nKCLevels]; 
 			res.put(component_id, levels);
 		}
-		for (Map.Entry<String, KnowledgeComponentGroup> kcEntry : groupedKCList.entrySet()) {
-			//String component_name = kcEntry.getKey();
-			String component_id = kcEntry.getValue().getId() + "";
-			double[] levels = new double[Aggregate.nKCLevels]; 
-			res.put(component_id, levels);
-		}
+		//All of this commented by @Jordan, as for CUMULATE we are not considering KCs combinations
+//		for (Map.Entry<String, KnowledgeComponentGroup> kcEntry : groupedKCList.entrySet()) {
+//			//String component_name = kcEntry.getKey();
+//			String component_id = kcEntry.getValue().getId() + "";
+//			double[] levels = new double[Aggregate.nKCLevels]; 
+//			res.put(component_id, levels);
+//		}
 		return res;
 	}
 
@@ -860,7 +882,7 @@ public class KCModeler {
 
 			if (domain.equalsIgnoreCase("sql")) {
 				url = new URL(conceptLevelsServiceURL
-						+ "?typ=con&dir=out&frm=xml&app=23&dom=sql_ontology"
+						+ "?typ=con&dir=out&frm=xml&app=23&dom=sql_unified"
 						+ "&usr=" + URLEncoder.encode(usr, "UTF-8") + "&grp="
 						+ URLEncoder.encode(grp, "UTF-8"));
 
@@ -875,7 +897,7 @@ public class KCModeler {
 			}
 			if (url != null)
 				user_concept_knowledge_levels = processUserKnowledgeReport(url);
-			// System.out.println(url.toString());
+			System.out.println(url.toString());
 		} catch (Exception e) {
 			user_concept_knowledge_levels = null;
 			System.out.println("UM: Error in reporting UM for user " + usr);
@@ -910,14 +932,16 @@ public class KCModeler {
 						if (cogLevelNode.getNodeType() == Node.ELEMENT_NODE) {
 							Element cogLevel = (Element) cogLevelNode;
 							if (getTagValue("name", cogLevel).trim().equals(
-									"application")) {
+									"application")) {//Code added by @Jordan for testing purposes
+									//"comprehension")) {
 
 								double level = 0.0;
 								level = Double.parseDouble(getTagValue("value",
 										cogLevel).trim());
-								// System.out.println(getTagValue("name",eElement)+" K="+level);
+								
 								userKnowledgeMap.put(
 										getTagValue("name", eElement), level);
+								//System.out.println("Name from xml: "+getTagValue("name", eElement)+" level: "+level);
 							}
 						}
 					}
