@@ -24,8 +24,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 
 public class PAWSUMInterface implements UMInterface {
-    private String server = "http://pawscomp2.sis.pitt.edu";
-    //private String server = "http://localhost:8080";
+    //private String server = "http://pawscomp2.sis.pitt.edu";//Commented by @Jordan for debugging in localhost
+    private String server = "http://localhost:8080";
 
     private String userInfoServiceURL = server
             + "/aggregateUMServices/GetUserInfo";

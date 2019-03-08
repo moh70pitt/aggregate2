@@ -25,9 +25,10 @@ import org.w3c.dom.NodeList;
 
 
 public class PAWSUMInterfaceV2 implements UMInterface {
-    private static final int LEVELS = 9; // define how many leves will be for each content item. First level is knowledge, then progress, then ..  
-	private String server = "http://pawscomp2.sis.pitt.edu";
-//    private String server = "http://localhost:8080";
+    //private static final int LEVELS = 9; // define how many leves will be for each content item. First level is knowledge, then progress, then ..  
+	private static final int LEVELS = 12; // modified by @Jordan as we added three metrics for measuring performance on the last k attempts 
+	//private String server = "http://pawscomp2.sis.pitt.edu"; //Commented by @Jordan for debugging in localhost
+    private String server = "http://localhost:8080";
 
     private String userInfoServiceURL = server + "/aggregateUMServices/GetUserInfo";
     private String classListServiceURL = server + "/aggregateUMServices/GetClassList";
@@ -159,6 +160,8 @@ public class PAWSUMInterfaceV2 implements UMInterface {
 
         		// Make a call to svcURL and process data adding content to contentSummary if content does not exist already, or complete the corresponding element 
         		// @@@
+        		
+        		System.out.println("svcURL: "+svcURL);//Added by @Jordan for debugging
 
         		//System.out.println("Input: ");
         		//System.out.println(json);
@@ -322,7 +325,6 @@ public class PAWSUMInterfaceV2 implements UMInterface {
     		}
     		json = json.substring(0,json.length()-2);
     		json += "\n    ]\n}";
-
     		
     		JSONObject jsonResponse = callService(svcURL, json);
 
@@ -340,6 +342,9 @@ public class PAWSUMInterfaceV2 implements UMInterface {
         			double likes = 0.0;
         			double time = 0.0;
         			double subs = 0;
+        			double lastKprogress = 0.0;
+        			double lastKatt = 0.0;
+        			double lastKsr = 0.0;
         			String attemptSeq = "";
         			try{ progress = c.getDouble("progress");}catch(Exception e){progress = 0;};
         			try{ att = c.getDouble("attempts");}catch(Exception e){};
@@ -349,6 +354,9 @@ public class PAWSUMInterfaceV2 implements UMInterface {
         			try{ time = c.getDouble("time-spent");}catch(Exception e){};
         			try{ subs = c.getDouble("sub-activities");}catch(Exception e){};
         			try{ attemptSeq = c.getString("attempts-seq");}catch(Exception e){attemptSeq = "";};
+        			try{ lastKprogress = c.getDouble("lastk-progress");}catch(Exception e){progress = 0;};
+        			try{ lastKatt = c.getDouble("lastk-attempts");}catch(Exception e){};
+        			try{ lastKsr = c.getDouble("lastk-success-rate");}catch(Exception e){};
         			
         			//System.out.println(contentId + " : " + progress);
         			
@@ -367,7 +375,10 @@ public class PAWSUMInterfaceV2 implements UMInterface {
         			values[6] = likes;
         			values[7] = time;
         			values[8] = subs;
-        			
+        			//Metrics added for getting the performance of the user in the last k attempts
+        			values[9] = lastKprogress;
+        			values[10] = lastKatt;
+        			values[11] = lastKsr;
         			activity.setLevels(values);
         			
         			activity.setAttemptsResSeq(attemptSeq);

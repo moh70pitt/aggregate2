@@ -221,7 +221,8 @@ public class Aggregate {
 		nTopicLevels = resourceList.size() * 2; // the dimension of the topic levels array. For each resource there is a
 												// level of knowledge and a level of progress
 		nContentLevels = 9; // see Activity.levels
-		nKCLevels = 8; // the last one purely for BN
+		//nKCLevels = 8; // the last one purely for BN //Commented by @Jordan
+		nKCLevels = 12;// tHe last 3 are related to lastKprogress, lastKatt, lastKsr
 
 		topicList = agg_db.getTopicList(cid);
 
@@ -492,6 +493,7 @@ public class Aggregate {
 				if(cm.agg_kcmap_method.equalsIgnoreCase("cumulate")){
 					System.out.println("verbose: "+verbose);
 					userKCLevels = kcModeler.computeCUMULATEKCModel(hashMapActivity, domain, grp);
+					
 				}
 			}
 
@@ -2231,11 +2233,13 @@ public class Aggregate {
 					if (kcJSONById) {
 						kc_levels += "       " + kc.getId() + ": {\"k\":" + df.format(levels[0]) + ",\"p\":"
 								+ df.format(levels[1]) + ",\"sr\":"
-										+ df.format(levels[3]) + "},\n";
+										+ df.format(levels[3]) + ",\"lastk-sr\":"
+												+ df.format(levels[11]) +"},\n";
 					} else
 						kc_levels += "       \"" + kc.getIdName() + "\": {\"k\":" + df.format(levels[0]) + ",\"p\":"
 								+ df.format(levels[1]) + ",\"sr\":"
-										+ df.format(levels[1]) + "},\n";
+										+ df.format(levels[1]) + ",\"lastk-sr\":"
+												+ df.format(levels[11]) + "},\n";
 
 				}
 			}
