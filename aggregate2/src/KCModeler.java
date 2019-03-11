@@ -713,8 +713,8 @@ public class KCModeler {
 			int nAttempts = 0;
 			double sr = 0.0;
 			//Metrics added by @Jordan for getting metrics related to the last k attempts of the students
-			double lastKnAttempts = 0.0;
-			double lastKsr = 0.0;
+			double lastKnAttempts = -1.0;
+			double lastKsr = -1.0;
 			int[] kcCounts = new int[4];
 			// count activities contributing to K and activities done
 			int nonNullActivities = 0;
