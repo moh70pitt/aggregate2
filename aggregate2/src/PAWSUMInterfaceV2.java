@@ -27,8 +27,8 @@ import org.w3c.dom.NodeList;
 public class PAWSUMInterfaceV2 implements UMInterface {
     //private static final int LEVELS = 9; // define how many leves will be for each content item. First level is knowledge, then progress, then ..  
 	private static final int LEVELS = 12; // modified by @Jordan as we added three metrics for measuring performance on the last k attempts 
-	//private String server = "http://pawscomp2.sis.pitt.edu"; //Commented by @Jordan for debugging in localhost
-    private String server = "http://localhost:8080";
+	private String server = "http://pawscomp2.sis.pitt.edu"; //Commented by @Jordan for debugging in localhost
+    //private String server = "http://localhost:8080";
 
     private String userInfoServiceURL = server + "/aggregateUMServices/GetUserInfo";
     private String classListServiceURL = server + "/aggregateUMServices/GetClassList";
@@ -354,7 +354,7 @@ public class PAWSUMInterfaceV2 implements UMInterface {
         			try{ time = c.getDouble("time-spent");}catch(Exception e){};
         			try{ subs = c.getDouble("sub-activities");}catch(Exception e){};
         			try{ attemptSeq = c.getString("attempts-seq");}catch(Exception e){attemptSeq = "";};
-        			try{ lastKprogress = c.getDouble("lastk-progress");}catch(Exception e){progress = 0;};
+        			try{ lastKprogress = c.getDouble("lastk-progress");}catch(Exception e){lastKprogress = 0;};
         			try{ lastKatt = c.getDouble("lastk-attempts");}catch(Exception e){};
         			try{ lastKsr = c.getDouble("lastk-success-rate");}catch(Exception e){};
         			
