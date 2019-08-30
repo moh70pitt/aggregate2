@@ -2310,14 +2310,12 @@ public class Aggregate {
 					System.out.println(Arrays.toString(levels));
 					if (kcJSONById) {
 						kc_levels += "       " + kc.getId() + ": {\"k\":" + df.format(levels[0]) + ",\"p\":"
-								+ df.format(levels[1]) + ",\"sr\":"
-										+ df.format(levels[3]) + ",\"lastk-sr\":"
-												+ df.format(levels[11]) +"},\n";
+								+ df.format(levels[1]) + ",\"sr\":" + df.format(levels[3]) + ",\"lastk-att\":"
+								+ df.format(levels[10]) + ",\"lastk-sr\":" + df.format(levels[11]) +"},\n";
 					} else
 						kc_levels += "       \"" + kc.getIdName() + "\": {\"k\":" + df.format(levels[0]) + ",\"p\":"
-								+ df.format(levels[1]) + ",\"sr\":"
-										+ df.format(levels[1]) + ",\"lastk-sr\":"
-												+ df.format(levels[11]) + "},\n";
+								+ df.format(levels[1]) + ",\"sr\":" + df.format(levels[3]) + ",\"lastk-att\":"
+								+ df.format(levels[10]) + ",\"lastk-sr\":" + df.format(levels[11]) + "},\n";
 
 				}
 			}

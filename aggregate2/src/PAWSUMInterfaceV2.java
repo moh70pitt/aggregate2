@@ -355,8 +355,8 @@ public class PAWSUMInterfaceV2 implements UMInterface {
         			try{ subs = c.getDouble("sub-activities");}catch(Exception e){};
         			try{ attemptSeq = c.getString("attempts-seq");}catch(Exception e){attemptSeq = "";};
         			try{ lastKprogress = c.getDouble("lastk-progress");}catch(Exception e){lastKprogress = 0;};
-        			try{ lastKatt = c.getDouble("lastk-attempts");}catch(Exception e){};
-        			try{ lastKsr = c.getDouble("lastk-success-rate");}catch(Exception e){};
+        			try{ lastKatt = c.getDouble("lastk-attempts");}catch(Exception e){ lastKatt = -1.0;};
+        			try{ lastKsr = c.getDouble("lastk-success-rate");}catch(Exception e){ lastKsr = -1.0;};
         			
         			//System.out.println(contentId + " : " + progress);
         			
