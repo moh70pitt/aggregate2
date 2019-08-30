@@ -8,7 +8,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -21,19 +20,19 @@ public class PAWSRecInterface implements RecInterface {
 	private boolean verbose = true;
 	//TODO later change the server to pawscomp2
 	private String server = "http://pawscomp2.sis.pitt.edu";
-	//private String server = "http://localhost:8080";
 	
     private String RecServiceURL = server + "/recommendation/GetRecommendations";
+	//private String RecServiceURL = "http://localhost:8080/recommendations/GetRecommendations";
    
 	@Override
 	public ArrayList<ArrayList<String[]>> getRecommendations(String usr,
             String grp, String sid, String cid, String domain, String lastContentId,
             String lastContentResult, String lastContentProvider,
-            HashMap<String, String[]> contentList, int maxReactiveRec,int maxProactiveRec,
+            String contents, int maxReactiveRec,int maxProactiveRec,
             double reactiveRecThreshold, double proactiveRecThreshold, 
             String reactiveRecMethod, String proactiveRecMethod,
             HashMap<String, ArrayList<String>[]> topicContent,
-            HashMap<String, double[]> userContentLevels, String updatesm) {
+            HashMap<String, double[]> userContentLevels) {
 		
 		ArrayList<ArrayList<String[]>> result = new ArrayList<ArrayList<String[]>>();
 		ArrayList<String[]> reactive_list = new ArrayList<String[]>();
@@ -45,8 +44,8 @@ public class PAWSRecInterface implements RecInterface {
 			HttpClient client = new HttpClient();
             PostMethod method = new PostMethod(RecServiceURL);
             String paramsJson = createParamJSON(usr, grp, sid, cid, domain, lastContentId, lastContentResult, lastContentProvider,
-					contentList, maxReactiveRec, maxProactiveRec, reactiveRecThreshold, proactiveRecThreshold,
-					reactiveRecMethod, proactiveRecMethod, topicContent, userContentLevels, updatesm);   
+					contents, maxReactiveRec, maxProactiveRec, reactiveRecThreshold, proactiveRecThreshold,
+					reactiveRecMethod, proactiveRecMethod, topicContent, userContentLevels);   
             method.setRequestBody(paramsJson);
             method.addRequestHeader("Content-type", "application/json");
 
@@ -67,6 +66,7 @@ public class PAWSRecInterface implements RecInterface {
 //                    read =br.readLine();
 //                }
                 json =  readJsonFromStream(in);
+                System.out.println("\n\n\n\n\nTHIS IS THE JSON FROM GetRecommendations: \n\n"+json.toString());
                 in.close();
                 if(json != null){
 	                if (json.has("error")) {
@@ -136,10 +136,10 @@ public class PAWSRecInterface implements RecInterface {
 
 
 	private String createParamJSON(String usr, String grp, String sid, String cid, String domain, String lastContentId,
-			String lastContentResult, String lastContentProvider, HashMap<String, String[]> contentList,
+			String lastContentResult, String lastContentProvider, String contents,
 			int maxReactiveRec, int maxProactiveRec, double reactiveRecThreshold, double proactiveRecThreshold,
 			String reactiveRecMethod, String proactiveRecMethod, HashMap<String, ArrayList<String>[]> topicContent,
-			HashMap<String, double[]> userContentLevels, String updatesm) throws UnsupportedEncodingException {
+			HashMap<String, double[]> userContentLevels) throws UnsupportedEncodingException {
 		
 		JSONObject json = new JSONObject();
 		json.put("usr", usr);
@@ -156,10 +156,9 @@ public class PAWSRecInterface implements RecInterface {
 		if(proactiveRecThreshold > -1) json.put("proactive_threshold", proactiveRecThreshold+"");
 		if(reactiveRecMethod != null && reactiveRecMethod.length()>0) json.put("reactive_method", reactiveRecMethod);
 		if(proactiveRecMethod != null && proactiveRecMethod.length()>0) json.put("proactive_method", proactiveRecMethod);
-		json.put("contents", getContents(contentList));
+		json.put("contents", contents);
 		json.put("topicContents",getTopicContentText(topicContent));
 		json.put("userContentProgress", getUserContentProgressText(userContentLevels));
-		json.put("updatesm", (updatesm == null ? "false" : updatesm));
 		return json.toString();
 	}
 	
@@ -195,14 +194,6 @@ public class PAWSRecInterface implements RecInterface {
 		return contentLvl;
 	}
 
-	private String getContents(HashMap<String, String[]> contentList) {
-		String contents = "";
-		for (String c : contentList.keySet())
-			contents += c + ",";
-		if(contents.length()>0) contents = contents.substring(0, contents.length()-1); //this is for ignoring the last ,
-		return contents;
-	}
-
 	/*
 	 * @returns string representation of topic-contents. Sample format is:
 	 * T1:a,b,c|T2:d,e,f|T3:h,g,i
@@ -220,10 +211,6 @@ public class PAWSRecInterface implements RecInterface {
 		}
 		return mainTxt;
 	}
-	private ArrayList<ArrayList<String[]>> processRecommendations(URL url) {
-		// TODO this method should be implemented later
-		return null;
-	}
 	
 	public static JSONObject readJsonFromStream(InputStream is)  throws Exception{
 		JSONObject json = null;
@@ -233,7 +220,6 @@ public class PAWSRecInterface implements RecInterface {
 			rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
 			jsonText = readAll(rd);
 			json = new JSONObject(jsonText);
-			System.out.println("\n\n\n\n\nTHIS IS THE JSON FROM GetRecommendations: \n\n"+json.toString());
 		}catch(Exception e){
 			System.out.println("JSON RESPONSE WITH ERROR: \n\n"+jsonText+"\n\n");
 			e.printStackTrace();

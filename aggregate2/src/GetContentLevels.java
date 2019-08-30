@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONObject;
+
 /**
  * Servlet implementation class GetContentLevels usr, grp, sid should be
  * provided by the log in (authentication) <br />
@@ -137,7 +139,7 @@ public class GetContentLevels extends HttpServlet {
 
 				if (cm.agg_proactiverec_enabled || cm.agg_reactiverec_enabled) {
 					time1 = Calendar.getInstance().getTimeInMillis();
-					aggregate.fillRecommendations("", "", 0, updatesm); // with these parameters, only proactive
+					aggregate.fillRecommendations("", "", 0); // with these parameters, only proactive
 																		// recommendations are included (sequencing)
 					if (verbose)
 						System.out.println(
@@ -174,31 +176,22 @@ public class GetContentLevels extends HttpServlet {
 				// (Calendar.getInstance().getTimeInMillis()-time1));
 				// }
 
-				// The following lines are added to get the result of the last activity
+				
 				if (updatesm != null && updatesm.equals("true")) {
-					String attemptsResSeq = aggregate.userContentSequences.get(last_content_id);
-					if (attemptsResSeq != null && attemptsResSeq.isEmpty() == false) {
-						String[] attmps = attemptsResSeq.split(",");
-						last_content_res = attmps[attmps.length - 1];// the last attempt in the sequence
-					} else {
-						/*
-						 * if attempts-seq data is not availlable, we set the last activity result to
-						 * the student's progress
-						 */
-						last_content_res = "" + aggregate.userContentLevels.get(last_content_id)[1]; // 2nd value in the
-																										// array is for
-																										// progress
-					}
+					// The following line is added to get the result of the last activity
+					last_content_res = getLastActivityResult(aggregate, last_content_id);
+					
+					aggregate.sendStudentModelUpdateRequest(last_content_id, last_content_res);
 				}
 
 				if (cm.agg_proactiverec_enabled || cm.agg_reactiverec_enabled) {
 					time1 = Calendar.getInstance().getTimeInMillis();
-					aggregate.fillRecommendations(last_content_id, last_content_res, number_recommendation, updatesm);
+					aggregate.fillRecommendations(last_content_id, last_content_res, number_recommendation);
 					if (verbose)
 						System.out
 								.println("Recommendations          " + (Calendar.getInstance().getTimeInMillis() - time1));
 				}
-
+				
 				time1 = Calendar.getInstance().getTimeInMillis();
 				aggregate.fillFeedbackForm(last_content_id, last_content_res);
 				if (verbose)
@@ -235,6 +228,25 @@ public class GetContentLevels extends HttpServlet {
 			e.printStackTrace();
 			throw e; 
 		}
+	}
+	
+	private String getLastActivityResult(Aggregate aggregate, String last_content_id) {
+		String last_content_res;
+		String attemptsResSeq = aggregate.userContentSequences.get(last_content_id);
+		if (attemptsResSeq != null && attemptsResSeq.isEmpty() == false) {
+			String[] attmps = attemptsResSeq.split(",");
+			last_content_res = attmps[attmps.length - 1];// the last attempt in the sequence
+		} else {
+			/*
+			 * if attempts-seq data is not availlable, we set the last activity result to
+			 * the student's progress
+			 */
+			last_content_res = "" + aggregate.userContentLevels.get(last_content_id)[1]; // 2nd value in the
+																							// array is for
+																							// progress
+		}	
+		
+		return last_content_res;
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)

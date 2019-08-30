@@ -31,11 +31,8 @@ public interface RecInterface {
      *            the provider id of the last content item attempted
      * @param maxRecommendations
      *            the maximum number of recommendation to include in the list
-     * @param contentList
-     *            each key represent a content item, identified by the
-     *            content_name and each value is an String[] with:<br />
-     *            0: resource name (id) 1: display name 2: url 3: description 4:
-     *            comment 5: provider id ...
+     * @param contents
+     *            Comma separated content list string
 	 * @param topicContent 
      * @return an array list containing 2 array lists, first array list contains reactive 
      * 		   recommendations, second contains proactive (sequencing). Each array list 
@@ -48,10 +45,10 @@ public interface RecInterface {
     public ArrayList<ArrayList<String[]>> getRecommendations(String usr,
             String grp, String sid, String cid, String domain, String lastContentId,
             String lastContentResult, String lastContentProvider,
-            HashMap<String, String[]> contentList, int maxReactiveRec,int maxProactiveRec,
+            String contents, int maxReactiveRec,int maxProactiveRec,
             double reactiveRecThreshold, double proactiveRecThreshold, 
             String reactiveRecMethod, String proactiveRecMethod,
             HashMap<String, ArrayList<String>[]> topicContent,
-            HashMap<String, double[]> userContentLevels, String updatesm);
+            HashMap<String, double[]> userContentLevels);
 
 }

@@ -1,3 +1,4 @@
+import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,6 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 /**
@@ -43,6 +47,11 @@ public class Aggregate {
 	// some use HashMap to speed up computations
 	public ArrayList<String[]> topicList; // each has: topic name (string id), display name (string), order (int),
 											// visibility (1/0)
+	
+	/**each key represent a content item, identified by the
+    *  content_name and each value is an String[] with:<br />
+    *  0: resource name (id) 1: display name 2: url 3: description 4:
+    *  comment 5: provider id ...*/
 	public HashMap<String, String[]> contentList; // each content has: resource name (string id), display name, url,
 													// description, comment, provider_id (string id)
 	public HashMap<String, String> mapContentTopic; // maps content id and topic id (the first topic containing the
@@ -1492,18 +1501,20 @@ public class Aggregate {
 	// @@@@ RECOMMENDATIONS getting the recommendations from the recommendation
 	// interface
 	// it will fill reactive recommendations and proactive scoring (sequencing)
-	public void fillRecommendations(String last_content_id, String last_content_res, int n, String updatesm) {		// @@@ get the content provider
+	public void fillRecommendations(String last_content_id, String last_content_res, int n) {		// @@@ get the content provider
 		String last_content_provider = "";
 		if (last_content_id != null && last_content_id.length() > 0)
 			last_content_provider = getProviderByContentName(last_content_id);
 		// recommendation_list = um_interface.getRecommendations(usr, grp, sid, cid,
 		// domain, last_content_id, last_content_res, last_content_provider, n,
 		// contentList);
-
+		
+		String contentsString = getCommaSeparatedContentString(contentList);
+		
 		ArrayList<ArrayList<String[]>> all_rec = rec_interface.getRecommendations(usr, grp, sid, cid, domain,
-				last_content_id, last_content_res, last_content_provider, contentList, cm.agg_reactiverec_max,
+				last_content_id, last_content_res, last_content_provider, contentsString, cm.agg_reactiverec_max,
 				cm.agg_proactiverec_max, cm.agg_reactiverec_threshold, cm.agg_proactiverec_threshold,
-				cm.agg_reactiverec_method, cm.agg_proactiverec_method, topicContent, userContentLevels, updatesm);
+				cm.agg_reactiverec_method, cm.agg_proactiverec_method, topicContent, userContentLevels);
 		recommendation_list = new ArrayList<ArrayList<String>>();
 		if (all_rec != null) {
 			// reactive recommendations
@@ -1574,6 +1585,73 @@ public class Aggregate {
 				}
 			}
 		}
+	}
+	
+	// Step 4: call the student model asynchronously to update its belief
+	// call student model only if the result is in valid range 0-1
+	public void sendStudentModelUpdateRequest(String last_content_id, String last_content_res) {
+		double result = Double.parseDouble(last_content_res);
+		if((cm.agg_proactiverec_enabled && cm.agg_proactiverec_method.equals("bng")) || 
+			(cm.agg_reactiverec_enabled && cm.agg_reactiverec_method.equals("pgsc") && result == 0.0) ||
+			cm.agg_kcmap && cm.agg_kcmap_method.equals("bn")) {
+			if (result >=0 && result <=1) {
+				String event = "aggregate";
+				String contentsString = getCommaSeparatedContentString(contentList);
+				
+				String params = createStudentModelUpdateParamJSON(usr, grp, last_content_id, last_content_res, contentsString, event);
+				sendPostRequest(params, cm.agg_bn_student_model_update_service_url, cm.agg_bn_student_model_request_sync);
+			}
+		}
+	}
+	
+	private void sendPostRequest(String params, String URL, boolean sync) {
+		try {
+			if(sync) {
+				HttpClient client = new HttpClient();
+		        PostMethod method = new PostMethod(URL);
+		        method.setRequestBody(params);
+		        method.addRequestHeader("Content-type", "application/json");
+		
+		        int statusCode = client.executeMethod(method);
+		        if (statusCode != -1) {
+		        	InputStream in = method.getResponseBodyAsStream();
+		        	org.json.JSONObject readJsonFromStream = PAWSRecInterface.readJsonFromStream(in);
+		        }
+			} else {
+				HttpAsyncClientInterface.getInstance().sendHttpAsynchPostRequest(URL, params);	
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	private String createStudentModelUpdateParamJSON(String usr, String grp, String lastAct, String lastActResult, String contents,
+			String event) {
+		JSONObject json = new JSONObject();
+		try {
+			json.put("usr", usr);
+			json.put("grp", grp);
+			json.put("lastContentId", lastAct);
+			json.put("lastContentResult", lastActResult);
+			json.put("contents", contents);
+			json.put("event", event);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+
+		return json.toString();
+	} 
+	
+	private String getCommaSeparatedContentString(HashMap<String, String[]> contentList) {
+		String contents = "";
+		for (String c : contentList.keySet())
+			contents += c + ",";
+		
+		if(contents.length()>0) 
+			contents = contents.substring(0, contents.length()-1); //this is for ignoring the last ,
+		
+		return contents;
 	}
 
 	public static int inStringArray(String[] array, String s) {

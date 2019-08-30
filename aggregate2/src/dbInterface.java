@@ -1,5 +1,4 @@
-import java.sql.*; 
-import java.util.*;
+import java.sql.*;
 public class dbInterface {
 	protected String dbstring;
 	protected String dbuser;
@@ -19,10 +18,7 @@ public class dbInterface {
 		try{
 			
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
-			//System.out.println(dbstring+"?"+ "user="+dbuser+"&password="+dbpass);
 			conn = DriverManager.getConnection(dbstring+"?"+ "user="+dbuser+"&password="+dbpass);
-//			System.out.println("opening connection: " + dbstring+"?"+ "user="+dbuser+"&password="+dbpass);
-//			System.out.println("result:" + conn);
 			if (conn!=null){
 				return true;
 			}

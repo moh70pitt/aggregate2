@@ -33,6 +33,9 @@ public class ConfigManager {
     
     public HttpServlet servletSource;
     private static String config_string = "./WEB-INF/config.xml";
+    
+  	public String agg_bn_student_model_update_service_url;
+	public boolean agg_bn_student_model_request_sync;
 
     public ConfigManager(HttpServlet servlet) {
     	this.servletSource = servlet;
@@ -68,10 +71,17 @@ public class ConfigManager {
                 
                 agg_kcmap = doc.getElementsByTagName("agg_kcmap").item(0).getTextContent().trim().equalsIgnoreCase("yes");
                 agg_kcmap_method = doc.getElementsByTagName("agg_kcmap_method").item(0).getTextContent().trim();
+                
+                agg_bn_student_model_update_service_url = getTrimmedTextValue(doc, "agg_bn_student_model_update_service_url");
+                agg_bn_student_model_request_sync = Boolean.valueOf(getTrimmedTextValue(doc, "agg_bn_student_model_request_sync"));
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    private String getTrimmedTextValue(Document doc, String param) {
+    	return doc.getElementsByTagName(param).item(0).getTextContent().trim();
     }
 
 }
