@@ -713,12 +713,14 @@ public class KCModeler {
 			int nAttempts = 0;
 			double sr = 0.0;
 			//Metrics added by @Jordan for getting metrics related to the last k attempts of the students
-			double lastKnAttempts = -1.0;
-			double lastKsr = -1.0;
+			double lastKnAttempts = -1;
+			double lastKsr = -1;
 			int[] kcCounts = new int[4];
 			// count activities contributing to K and activities done
 			int nonNullActivities = 0;
 			int nonNullLastKActivities = 0;
+//			System.out.println("------------------------");
+//			System.out.println("For kc "+kcName);
 			for(String c:contents){
 				Activity a = activity.get(c);
 				if(a != null){
@@ -739,10 +741,14 @@ public class KCModeler {
 							//TODO: @Jordan should I consider when SR is 0 but they have not attempted the activity???
 							//System.out.println("Activity "+a.getName()+" success rate: "+levels[3]);
 						}
-						lastKnAttempts = (int)levels[10];
-						//Added by @Jordan for calculating last
-						if(lastKnAttempts>0  && (double)levels[11] > -1){
+						//Added by @Jordan for calculating last k attempts activity summary
+//						System.out.println(a.getName());
+//						System.out.println("Last k attempts: "+levels[10]+" , sr: "+levels[11]);
+						if((int)levels[10]>0  && (double)levels[11] >=0){
+							if (lastKsr == -1) lastKsr = 0.0; //When at least one of the sr is different than -1.0 we have to change the value of the lastKsr to 0.0 in order to update it with the right accumulated value
+							if (lastKnAttempts == -1) lastKnAttempts = 0.0;
 							lastKsr += (double)levels[11];
+							lastKnAttempts += (int) levels[10];
 							nonNullLastKActivities++;
 						}
 						
@@ -750,9 +756,10 @@ public class KCModeler {
 				}
 			}
 			if(sr>0.0) sr = sr/nonNullActivities;//Added by Jordan, it gets average success rate, as in the previous for loop they were only summed up
-			if(lastKsr>0.0) lastKsr = lastKsr/nonNullLastKActivities;
+			if(lastKsr>=0.0) lastKsr = lastKsr/nonNullLastKActivities;
+			if(lastKnAttempts>=0) lastKnAttempts = lastKnAttempts/nonNullLastKActivities;
 			//Added by @Jordan
-			System.out.println("Last k success rate for "+kcName+" : "+lastKsr);
+			//System.out.println("Last k success rate for "+kcName+" : "+lastKsr+", avg n of attempts: "+lastKnAttempts);
 			
 			kcCounts[0] = contents.size();
 			kcCounts[1] = nCntDone;
@@ -801,6 +808,7 @@ public class KCModeler {
 			levels[4] = nCntDone;
 			levels[5] = -1;//kcCounts[3];//Commented by @Jordan as in CUMULATE we do not consider KCs combinations
 			levels[6] = -1;
+			levels[10] = lastKnAttempts; //Added by @Jordan for adding the number of attempts within the last k activity attempts
 			levels[11] = lastKsr; //Added by @Jordan for adding the success rate on the last k activity attempts
 			
 			res.put(kc.getId()+"",levels);
