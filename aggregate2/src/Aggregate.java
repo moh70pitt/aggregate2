@@ -1598,7 +1598,7 @@ public class Aggregate {
 				String event = "aggregate";
 				String contentsString = getCommaSeparatedContentString(contentList);
 				
-				String params = createStudentModelUpdateParamJSON(usr, grp, last_content_id, last_content_res, contentsString, event);
+				String params = createStudentModelUpdateParamJSON(usr, grp, cid, last_content_id, last_content_res, contentsString, event);
 				sendPostRequest(params, cm.agg_bn_student_model_update_service_url, cm.agg_bn_student_model_request_sync);
 			}
 		}
@@ -1626,12 +1626,13 @@ public class Aggregate {
 		
 	}
 	
-	private String createStudentModelUpdateParamJSON(String usr, String grp, String lastAct, String lastActResult, String contents,
+	private String createStudentModelUpdateParamJSON(String usr, String grp,  String cid, String lastAct, String lastActResult, String contents,
 			String event) {
 		JSONObject json = new JSONObject();
 		try {
 			json.put("usr", usr);
 			json.put("grp", grp);
+			json.put("cid", cid);
 			json.put("lastContentId", lastAct);
 			json.put("lastContentResult", lastActResult);
 			json.put("contents", contents);
