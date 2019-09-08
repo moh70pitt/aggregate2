@@ -217,7 +217,6 @@ public class GetContentLevels extends HttpServlet {
 			}
 			time1 = Calendar.getInstance().getTimeInMillis();
 			out.print(output);
-			System.out.println("Printing aggregate test");
 			if (verbose)
 				System.out.println("Printing output          " + (Calendar.getInstance().getTimeInMillis() - time1));
 			if (verbose)

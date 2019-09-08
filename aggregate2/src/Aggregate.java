@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -938,60 +939,46 @@ public class Aggregate {
 						subgroups_kc_levels.add(computeSubGroupKCLevels(sub_peers));
 					}
 				}else{
+					List<String[]> studentList = class_list.stream()
+							.filter(student -> non_students.containsKey(student[0]) == false)
+							.collect(Collectors.toList());
+					
+					int halfIndex = studentList.size()/2;
+					ArrayList<String> perfomancePeers = new ArrayList<String>();
+					ArrayList<String> performancePeersAnonym = new ArrayList<String>();
+					
 					if(subgroupName.equals("higher_performance")){
-						ArrayList<String> higherPerfomancePeers = new ArrayList<String>();
-						ArrayList<String> higherPerformancePeersAnonym = new ArrayList<String>();
-						int halfIndex = (int) (class_list.size()/2);
-						int i = 0;
-						for (int j = 0; j < class_list.size() && i < halfIndex; j++) {
-							String learner_id = class_list.get(j)[0];
-							String learnerAnonymId = class_list.get(j)[3];
-							if (non_students.get(learner_id) == null) {
-								higherPerfomancePeers.add(learner_id);
-								if (learner_id.equalsIgnoreCase(usr))
-									higherPerformancePeersAnonym.add(learner_id);
-								else
-									higherPerformancePeersAnonym.add(learnerAnonymId);
-								i++;
-							}
-
+						for (int j = 0; j < halfIndex; j++) {
+							String learner_id = studentList.get(j)[0];
+							String learnerAnonymId = studentList.get(j)[3];
+							perfomancePeers.add(learner_id);
+							if (learner_id.equalsIgnoreCase(usr))
+								performancePeersAnonym.add(learner_id);
+							else
+								performancePeersAnonym.add(learnerAnonymId);
 						}
-
-						subgroups_student_ids.add(higherPerfomancePeers);
-						subgroups_student_anonym_ids.add(higherPerformancePeersAnonym);
-						subgroups_names.add("Higher progress");
-						subgroups_topic_levels.add(computeSubGroupTopicLevels(higherPerfomancePeers));
-						subgroups_content_levels.add(computeSubGroupContentLevels(higherPerfomancePeers));
-						subgroups_kc_levels.add(computeSubGroupKCLevels(higherPerfomancePeers));
 						
-					}else if(subgroupName.equals("lower_performance")){
+						subgroups_names.add("Higher progress");
 
-						ArrayList<String> lowerPerfomancePeers = new ArrayList<String>();
-						ArrayList<String> lowerPerformancePeersAnonym = new ArrayList<String>();
-						int halfIndex = (int) class_list.size()/2;
-						int i = 0;
-						for (int j = halfIndex; j < class_list.size(); j++) {
-							String learner_id = class_list.get(j)[0];
-							String learnerAnonymId = class_list.get(j)[3];
-							if (non_students.get(learner_id) == null) {
-								lowerPerfomancePeers.add(learner_id);
-								if (learner_id.equalsIgnoreCase(usr))
-									lowerPerformancePeersAnonym.add(learner_id);
-								else
-									lowerPerformancePeersAnonym.add(learnerAnonymId);
-								i++;
-							}
-
+					} else if(subgroupName.equals("lower_performance")){
+						for (int j = halfIndex; j < studentList.size(); j++) {
+							String learner_id = studentList.get(j)[0];
+							String learnerAnonymId = studentList.get(j)[3];
+							perfomancePeers.add(learner_id);
+							if (learner_id.equalsIgnoreCase(usr))
+								performancePeersAnonym.add(learner_id);
+							else
+								performancePeersAnonym.add(learnerAnonymId);
 						}
 
-						subgroups_student_ids.add(lowerPerfomancePeers);
-						subgroups_student_anonym_ids.add(lowerPerformancePeersAnonym);
 						subgroups_names.add("Lower progress");
-						subgroups_topic_levels.add(computeSubGroupTopicLevels(lowerPerfomancePeers));
-						subgroups_content_levels.add(computeSubGroupContentLevels(lowerPerfomancePeers));
-						subgroups_kc_levels.add(computeSubGroupKCLevels(lowerPerfomancePeers));
-
 					}
+					
+					subgroups_student_ids.add(perfomancePeers);
+					subgroups_student_anonym_ids.add(performancePeersAnonym);
+					subgroups_topic_levels.add(computeSubGroupTopicLevels(perfomancePeers));
+					subgroups_content_levels.add(computeSubGroupContentLevels(perfomancePeers));
+					subgroups_kc_levels.add(computeSubGroupKCLevels(perfomancePeers));
 				}
 			}
 		}
