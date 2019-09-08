@@ -638,11 +638,17 @@ public class Aggregate {
 		// score = 0.0;
 		return score;
 	}
+	
+	// Get the precomputed models at level of content and topics for each
+	// student in the list
+	public void fillClassLevels(boolean includeNullStudents, boolean considerAllModelsInCourse) {
+		fillClassLevels(null, includeNullStudents, considerAllModelsInCourse);
+	}
 
 	// Get the precomputed models at level of content and topics for each
 	// student in the list
 	// set usr to null to get all, or a user is to get only the user model
-	public void fillClassLevels(String usr, boolean includeNullStudents) {
+	public void fillClassLevels(String usr, boolean includeNullStudents, boolean considerAllModelsInCourse) {
 		if (class_list == null || class_list.size() == 0) {
 			return;
 		}
@@ -653,7 +659,15 @@ public class Aggregate {
 		// HashMap<String, String[]> precomp_models = agg_db.getPrecomputedModels(cid,
 		// usr);
 		// System.out.println("Getting all models formthe class. User: "+usr);
-		HashMap<String, String[]> precomp_models = agg_db.getComputedModels(cid, usr);
+		
+		HashMap<String, String[]> precomp_models = null; 
+		
+		if(considerAllModelsInCourse) {
+			precomp_models = agg_db.getComputedModelsInCourse(cid);
+		} else {
+			precomp_models = agg_db.getComputedModels(cid, usr);
+		}
+		
 		// for(String[] learner: class_list){
 		// System.out.println("total students: "+class_list.size());
 		for (Iterator<String[]> i = class_list.iterator(); i.hasNext();) {
@@ -2514,34 +2528,8 @@ public class Aggregate {
 		String topics = genJSONTopics();
 		String kcs = genJSONKCs();
 		
-		if (!this.includeOthers)
-			n = 0;
-
-		String learners = "learners:[ \n";
-		int c = 0;
-		for (String[] learner : class_list) {
-			String ishidden = "false";
-			if (non_students.get(learner[0]) != null)
-				ishidden = "true";
-			if (c < n - 1 || learner[0].equalsIgnoreCase(usr) || n == -1) {
-				learners += "{\n  id:\"" + (learner[0].equalsIgnoreCase(usr) ? learner[0] : learner[3]) + "\",name:\""
-						+ learner[1] + "\",isHidden:" + ishidden + ",\n  " + genJSONLearnerState(learner[0]) + "\n},\n";
-			}
-			c++;
-		}
-		learners = learners.substring(0, learners.length() - 2);
-		learners += "\n]";
-
-		String aggs_levels = "groups:[ \n";
-		for (int g = 0; g < subgroups_names.size(); g++) {
-			String subgroup = "{\n  name:\"" + subgroups_names.get(g) + "\",\n";
-
-			subgroup += genJSONGroupState(subgroups_topic_levels.get(g), subgroups_content_levels.get(g),
-					subgroups_kc_levels.get(g), subgroups_student_anonym_ids.get(g)) + "\n},\n";
-			aggs_levels += subgroup;
-		}
-		aggs_levels = aggs_levels.substring(0, aggs_levels.length() - 2);
-		aggs_levels += "]";
+		String learners = getLearners(n);
+		String aggs_levels = getAggLevels();
 
 		String logs = genLogJSON();
 		String badges = genBadgeJSON(true);
@@ -2557,6 +2545,10 @@ public class Aggregate {
 				+ ",\n  learner:{\n    id:\"" + usr + "\",name:\"" + usr_name + "\",\n";
 		output += genJSONLearnerState(usr);
 		output += "\n  },\n"; // closing learner object
+		
+		String aggs_levels = getAggLevels();
+		
+		output += aggs_levels + ",\n";
 		output += genJSONRecommendation() + ",\n";
 		output += genJSONFeedback() + ", \n";
 		output += genLogJSON() + ",\n";
@@ -2564,6 +2556,46 @@ public class Aggregate {
 		output += genTotalRecJSON();
 		output += "\n}";
 		return output;
+	}
+	
+	private String getLearners(int n) {
+		if (!this.includeOthers)
+			n = 0;
+		
+		String learners = "learners:[ \n";
+		int c = 0;
+		for (String[] learner : class_list) {
+			String ishidden = "false";
+			if (non_students.get(learner[0]) != null)
+				ishidden = "true";
+			if (c < n - 1 || learner[0].equalsIgnoreCase(usr) || n == -1) {
+				learners += "{\n  id:\"" + (learner[0].equalsIgnoreCase(usr) ? learner[0] : learner[3]) + "\",name:\""
+						+ learner[1] + "\",isHidden:" + ishidden + ",\n  " + genJSONLearnerState(learner[0]) + "\n},\n";
+			}
+			c++;
+		}
+		learners = learners.substring(0, learners.length() - 2);
+		learners += "\n]";
+		
+		return learners;
+	}
+	
+	private String getAggLevels() {
+		String aggs_levels = "groups:[ \n";
+		if(subgroups_names != null) {
+			for (int g = 0; g < subgroups_names.size(); g++) {
+				String subgroup = "{\n  name:\"" + subgroups_names.get(g) + "\",\n";
+
+				subgroup += genJSONGroupState(subgroups_topic_levels.get(g), subgroups_content_levels.get(g),
+						subgroups_kc_levels.get(g), subgroups_student_anonym_ids.get(g)) + "\n},\n";
+				aggs_levels += subgroup;
+			}
+			aggs_levels = aggs_levels.substring(0, aggs_levels.length() - 2);
+		}
+		
+		aggs_levels += "]";
+		
+		return aggs_levels;
 	}
 
 	

@@ -94,6 +94,7 @@ public class GetContentLevels extends HttpServlet {
 			 * result of last activity should be corrected
 			 */
 			String updatesm = request.getParameter("updatesm");
+			String computeGroupLevelsStr = request.getParameter("computeGroupLevels");
 
 			// if problems to get the variables, defaults are nmodels=-1 (retrieve all),
 			// top=3
@@ -128,7 +129,7 @@ public class GetContentLevels extends HttpServlet {
 
 				// Get stores models for class peers
 				time1 = Calendar.getInstance().getTimeInMillis();
-				aggregate.fillClassLevels(null, cm.agg_include_null_users.equalsIgnoreCase("yes"));
+				aggregate.fillClassLevels(cm.agg_include_null_users.equalsIgnoreCase("yes"), true);
 				if (verbose)
 					System.out.println("Get class levels         " + (Calendar.getInstance().getTimeInMillis() - time1));
 
@@ -164,10 +165,16 @@ public class GetContentLevels extends HttpServlet {
 					System.out.println("Construct Aggregate+UM   " + (Calendar.getInstance().getTimeInMillis() - time1));
 
 				time1 = Calendar.getInstance().getTimeInMillis();
-				aggregate.fillClassLevels(usr, cm.agg_include_null_users.equalsIgnoreCase("yes"));
+				boolean computeGroupLevels = computeGroupLevelsStr != null && computeGroupLevelsStr.equals("true");
+				
+				aggregate.fillClassLevels(usr, cm.agg_include_null_users.equalsIgnoreCase("yes"), computeGroupLevels);
 				if (verbose)
 					System.out.println("Get class levels         " + (Calendar.getInstance().getTimeInMillis() - time1));
-
+				
+				if(computeGroupLevels) {
+					aggregate.computeGroupLevels(false, top);
+				}
+				
 				// compute sequencing
 				// if(cm.agg_sequencing.equalsIgnoreCase("yes")){
 				// time1 = Calendar.getInstance().getTimeInMillis();

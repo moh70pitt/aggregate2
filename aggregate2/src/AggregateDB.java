@@ -380,8 +380,10 @@ public class AggregateDB extends dbInterface {
         }
         return n > 0;
     }
-
-
+    
+    public HashMap<String, String[]> getComputedModelsInCourse(String course_id) {
+        return getComputedModels(course_id, null);
+    }
 
     // give usr == null or usr == "" to look for all precomputed models within a course
     public HashMap<String, String[]> getComputedModels(String course_id, String usr) {
