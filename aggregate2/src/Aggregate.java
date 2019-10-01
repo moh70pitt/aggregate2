@@ -2002,8 +2002,8 @@ public class Aggregate {
 		    String parameterValue = parameterInfo.getValue();
 		    res += ""+parameterName+":\""+parameterValue+"\",";
 		}
-		//Remove an additional comma which does not have to be there
-		if(this.userPreferences.size()>0){
+		//Remove an additional comma which does not have to be there (in case there are no other userParameters to append after this
+		if(this.userPreferences.size()>0 && (userParameters==null || (userParameters!=null && userParameters[0]==null))){
 			res=res.substring(0, res.length()-1);
 		}
 		
