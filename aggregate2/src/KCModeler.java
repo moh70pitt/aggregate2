@@ -742,8 +742,8 @@ public class KCModeler {
 							//System.out.println("Activity "+a.getName()+" success rate: "+levels[3]);
 						}
 						//Added by @Jordan for calculating last k attempts activity summary
-//						System.out.println(a.getName());
-//						System.out.println("Last k attempts: "+levels[10]+" , sr: "+levels[11]);
+						//System.out.println(a.getName());
+						//System.out.println("Last k attempts: "+levels[10]+" , sr: "+levels[11]);
 						if((int)levels[10]>0  && (double)levels[11] >=0){
 							if (lastKsr == -1) lastKsr = 0.0; //When at least one of the sr is different than -1.0 we have to change the value of the lastKsr to 0.0 in order to update it with the right accumulated value
 							if (lastKnAttempts == -1) lastKnAttempts = 0.0;
@@ -759,7 +759,7 @@ public class KCModeler {
 			if(lastKsr>=0.0) lastKsr = lastKsr/nonNullLastKActivities;
 			if(lastKnAttempts>=0) lastKnAttempts = lastKnAttempts/nonNullLastKActivities;
 			//Added by @Jordan
-			//System.out.println("Last k success rate for "+kcName+" : "+lastKsr+", avg n of attempts: "+lastKnAttempts);
+			System.out.println("Last k success rate for "+kcName+" : "+lastKsr+", avg n of attempts: "+lastKnAttempts);
 			
 			kcCounts[0] = contents.size();
 			kcCounts[1] = nCntDone;
@@ -904,7 +904,7 @@ public class KCModeler {
 
 			if (domain.equalsIgnoreCase("sql")) {
 				url = new URL(conceptLevelsServiceURL
-						+ "?typ=con&dir=out&frm=xml&app=23&dom=sql_unified"
+						+ "?typ=con&dir=out&frm=xml&app=23&dom=sql_ontology"
 						+ "&usr=" + URLEncoder.encode(usr, "UTF-8") + "&grp="
 						+ URLEncoder.encode(grp, "UTF-8"));
 
