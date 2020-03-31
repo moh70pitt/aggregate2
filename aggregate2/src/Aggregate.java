@@ -69,10 +69,10 @@ public class Aggregate {
 	public HashMap<String, KnowledgeComponent> singleKCList = null;
 	public HashMap<String, KnowledgeComponentGroup> groupedKCList = null;
 
-	public static int nTopicLevels; // NResource X 2: 2 levels (K,P) for each resource type
-	public static int nContentLevels; // 9 levels (K,P,A,S,C,AN,L,T,Sub) knowledge,progress,N attempts, success rate,
+	public int nTopicLevels; // NResource X 2: 2 levels (K,P) for each resource type
+	public int nContentLevels; // 9 levels (K,P,A,S,C,AN,L,T,Sub) knowledge,progress,N attempts, success rate,
 										// completion, annotations, likes, time, subactivities
-	public static int nKCLevels; // 7 levels (K,P,A,SR,S,C,T ) knowledge,progress, attempts (raw), success rate,
+	public int nKCLevels; // 7 levels (K,P,A,SR,S,C,T ) knowledge,progress, attempts (raw), success rate,
 									// problems solved, connections done, time
 
 	// Ordered ArrayList of students in the class. Each elements has (strings):
@@ -448,7 +448,7 @@ public class Aggregate {
 		if (cm.agg_kcmap) {
 			System.out.println("Entered to KC estimation...");
 			KCModeler kcModeler = new KCModeler(usr, domain, cid, singleKCList, groupedKCList, contentList,
-					cm.agg_kcmap_method, domain, cm.servletSource.getServletContext());
+					cm.agg_kcmap_method, domain, cm.servletSource.getServletContext(), nKCLevels);
 
 			// Bayesian model
 			// if(cm.agg_kcmap_method.equalsIgnoreCase("BN")){
@@ -780,7 +780,12 @@ public class Aggregate {
 				n = str_levels.length;
 			}
 			for (int j = 0; j < n; j++) {
-				levels[j] = Double.parseDouble(str_levels[j]);
+				try {
+					levels[j] = Double.parseDouble(str_levels[j]);
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+				
 			}
 			res.put(name, levels);
 

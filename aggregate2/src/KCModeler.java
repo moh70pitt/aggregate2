@@ -40,7 +40,7 @@ public class KCModeler {
 	private String grp;
 	private String cid;
 	
-	
+	private int nKCLevels;
 	
 	private HashMap<String,KnowledgeComponent> singleKCList;
 	private HashMap<String,KnowledgeComponentGroup> groupedKCList;
@@ -73,7 +73,7 @@ public class KCModeler {
 			HashMap<String, KnowledgeComponent> singleKCList,
 			HashMap<String, KnowledgeComponentGroup> groupedKCList,
 			HashMap<String, String[]> contentList,
-			String method, String domain, ServletContext context){
+			String method, String domain, ServletContext context, int nKCLevels){
 			//HashMap<String, double[]> previousKCLevels) {
 		super();
 		this.usr = usr;
@@ -85,6 +85,7 @@ public class KCModeler {
 		this.method = method;
 		this.context = context;
 		this.domain = domain;
+		this.nKCLevels = nKCLevels;
 		recommendedActivities = null;
 		//this.previousKCLevels = previousKCLevels;
 	}
@@ -471,7 +472,7 @@ public class KCModeler {
 				sumKC.put(kc.getId()+"", kcCounts);
 				
 				// add the kc and its levels
-				double[] levels = new double[Aggregate.nKCLevels]; 
+				double[] levels = new double[nKCLevels]; 
 				double div = (kcCounts[0] > 0 ? kcCounts[0] : 1);
 				double contentCoverage = kcCounts[1] / div;
 				levels[0] = contentCoverage;
@@ -569,7 +570,7 @@ public class KCModeler {
 				sumKC.put(kc.getId()+"", kcCounts);
 				
 				// add the kc and its levels
-				double[] levels = new double[Aggregate.nKCLevels]; 
+				double[] levels = new double[nKCLevels]; 
 				double div1 = (kcCounts[0] > 0 ? kcCounts[0] : 1);
 				double div2 = (kcCounts[2] > 0 ? kcCounts[2] : 1);
 				
@@ -782,7 +783,7 @@ public class KCModeler {
 
 			
 			// add the kc and its levels
-			double[] levels = new double[Aggregate.nKCLevels]; 
+			double[] levels = new double[nKCLevels]; 
 			double div1 = (kcCounts[0] > 0 ? kcCounts[0] : 1);
 			//double div2 = (kcCounts[2] > 0 ? kcCounts[2] : 1);
 			
@@ -824,7 +825,7 @@ public class KCModeler {
 		for (Map.Entry<String, KnowledgeComponent> kcEntry : singleKCList.entrySet()) {
 			//String component_name = kcEntry.getKey();
 			String component_id = kcEntry.getValue().getId() + "";
-			double[] levels = new double[Aggregate.nKCLevels]; 
+			double[] levels = new double[nKCLevels]; 
 			res.put(component_id, levels);
 		}
 		//All of this commented by @Jordan, as for CUMULATE we are not considering KCs combinations
