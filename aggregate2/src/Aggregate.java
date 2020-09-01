@@ -1004,8 +1004,8 @@ public class Aggregate {
 								performancePeersAnonym.add(learnerAnonymId);
 						}
 
-						subgroups_names.add("Lower progress");
-					} else if(subgroupName.equals("medium_performance")){
+						subgroups_names.add("Lower third");
+					} else if(subgroupName.equals("middle_third_performance")){
 						for (int j = oneThirdIndex; j < oneThirdIndex*2; j++) {
 							String learner_id = studentList.get(j)[0];
 							String learnerAnonymId = studentList.get(j)[3];
@@ -1016,7 +1016,7 @@ public class Aggregate {
 								performancePeersAnonym.add(learnerAnonymId);
 						}
 
-						subgroups_names.add("Medium progress");
+						subgroups_names.add("Middle third");
 					} else if(subgroupName.equals("higher_third_performance")){
 						for (int j = 0; j < oneThirdIndex; j++) {
 							String learner_id = studentList.get(j)[0];
@@ -1028,7 +1028,7 @@ public class Aggregate {
 								performancePeersAnonym.add(learnerAnonymId);
 						}
 
-						subgroups_names.add("Higher progress");
+						subgroups_names.add("Higher third");
 					}
 					
 					subgroups_student_ids.add(perfomancePeers);
