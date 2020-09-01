@@ -548,13 +548,14 @@ public class AggregateDB extends dbInterface {
         try {
             ArrayList<String[]> res = new ArrayList<String[]>();
             stmt = conn.createStatement();
-            String query = "SELECT subgroup_name,subgroup_users from ent_subgroups " +
+            String query = "SELECT subgroup_name,subgroup_users,type from ent_subgroups " +
             		   "where group_id=\'"+group_id+"\';";
             rs = stmt.executeQuery(query);
             while (rs.next()) {
                 String[] subgroup = new String[2];
                 subgroup[0] = rs.getString("subgroup_name");
                 subgroup[1] = rs.getString("subgroup_users");
+                subgroup[2] = rs.getString("type");
                 res.add(subgroup);
             }
             this.releaseStatement(stmt, rs);

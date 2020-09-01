@@ -2545,15 +2545,21 @@ public class Aggregate {
 	}
 
 	// REVIEW generate the main JSON response for the logged in user
-	public String genUserJSON(String last_content_id, String last_content_res) {
+	public String genUserJSON(boolean computeGroupLevels, String last_content_id, String last_content_res) {
 		String output = "{\n  lastActivityId:\"" + last_content_id + "\",\n  lastActivityRes:" + last_content_res
 				+ ",\n  learner:{\n    id:\"" + usr + "\",name:\"" + usr_name + "\",\n";
 		output += genJSONLearnerState(usr);
 		output += "\n  },\n"; // closing learner object
 		
 		String aggs_levels = getAggLevels();
-		
+
 		output += aggs_levels + ",\n";
+		
+		if(computeGroupLevels) {
+			String learners = getLearners(-1);
+			output += learners + ",\n";
+		}
+		
 		output += genJSONRecommendation() + ",\n";
 		output += genJSONFeedback() + ", \n";
 		output += genLogJSON() + ",\n";

@@ -95,6 +95,7 @@ public class GetContentLevels extends HttpServlet {
 			 */
 			String updatesm = request.getParameter("updatesm");
 			String computeGroupLevelsStr = request.getParameter("computeGroupLevels");
+			boolean computeGroupLevels = computeGroupLevelsStr != null && computeGroupLevelsStr.equals("true");
 
 			// if problems to get the variables, defaults are nmodels=-1 (retrieve all),
 			// top=3
@@ -129,7 +130,7 @@ public class GetContentLevels extends HttpServlet {
 
 				// Get stores models for class peers
 				time1 = Calendar.getInstance().getTimeInMillis();
-				aggregate.fillClassLevels(cm.agg_include_null_users.equalsIgnoreCase("yes"), true);
+				aggregate.fillClassLevels(cm.agg_include_null_users.equalsIgnoreCase("yes"), computeGroupLevels);
 				if (verbose)
 					System.out.println("Get class levels         " + (Calendar.getInstance().getTimeInMillis() - time1));
 
@@ -165,14 +166,13 @@ public class GetContentLevels extends HttpServlet {
 					System.out.println("Construct Aggregate+UM   " + (Calendar.getInstance().getTimeInMillis() - time1));
 
 				time1 = Calendar.getInstance().getTimeInMillis();
-				boolean computeGroupLevels = computeGroupLevelsStr != null && computeGroupLevelsStr.equals("true");
 				
 				aggregate.fillClassLevels(usr, cm.agg_include_null_users.equalsIgnoreCase("yes"), computeGroupLevels);
 				if (verbose)
 					System.out.println("Get class levels         " + (Calendar.getInstance().getTimeInMillis() - time1));
 				
 				if(computeGroupLevels) {
-					aggregate.computeGroupLevels(false, top);
+					aggregate.computeGroupLevels(cm.agg_include_null_users.equalsIgnoreCase("yes"), top);
 				}
 				
 				// compute sequencing
@@ -215,7 +215,7 @@ public class GetContentLevels extends HttpServlet {
 			
 
 				time1 = Calendar.getInstance().getTimeInMillis();
-				output = aggregate.genUserJSON(last_content_id, last_content_res);
+				output = aggregate.genUserJSON(computeGroupLevels, last_content_id, last_content_res);
 				if (verbose)
 					System.out.println("Generate JSON            " + (Calendar.getInstance().getTimeInMillis() - time1));
 
