@@ -937,7 +937,7 @@ public class Aggregate {
 		if (subgroups != null && subgroups.size() > 0) {
 			for (String[] subgroup : subgroups) {
 				String subgroupName = subgroup[0];
-				if(!subgroupName.equals("lower_performance") && !subgroupName.equals("higher_performance")){
+				if(!subgroupName.contains("_performance")){
 					String[] peers = subgroup[1].split(",");
 					ArrayList<String> sub_peers = new ArrayList<String>();
 					ArrayList<String> sub_peers_anonym = new ArrayList<String>();
@@ -963,6 +963,8 @@ public class Aggregate {
 							.collect(Collectors.toList());
 					
 					int halfIndex = studentList.size()/2;
+					int oneThirdIndex = studentList.size()/3;
+					
 					ArrayList<String> perfomancePeers = new ArrayList<String>();
 					ArrayList<String> performancePeersAnonym = new ArrayList<String>();
 					
@@ -991,6 +993,42 @@ public class Aggregate {
 						}
 
 						subgroups_names.add("Lower progress");
+					} else if(subgroupName.equals("lower_third_performance")){
+						for (int j = oneThirdIndex*2; j < studentList.size(); j++) {
+							String learner_id = studentList.get(j)[0];
+							String learnerAnonymId = studentList.get(j)[3];
+							perfomancePeers.add(learner_id);
+							if (learner_id.equalsIgnoreCase(usr))
+								performancePeersAnonym.add(learner_id);
+							else
+								performancePeersAnonym.add(learnerAnonymId);
+						}
+
+						subgroups_names.add("Lower progress");
+					} else if(subgroupName.equals("medium_performance")){
+						for (int j = oneThirdIndex; j < oneThirdIndex*2; j++) {
+							String learner_id = studentList.get(j)[0];
+							String learnerAnonymId = studentList.get(j)[3];
+							perfomancePeers.add(learner_id);
+							if (learner_id.equalsIgnoreCase(usr))
+								performancePeersAnonym.add(learner_id);
+							else
+								performancePeersAnonym.add(learnerAnonymId);
+						}
+
+						subgroups_names.add("Medium progress");
+					} else if(subgroupName.equals("higher_third_performance")){
+						for (int j = 0; j < oneThirdIndex; j++) {
+							String learner_id = studentList.get(j)[0];
+							String learnerAnonymId = studentList.get(j)[3];
+							perfomancePeers.add(learner_id);
+							if (learner_id.equalsIgnoreCase(usr))
+								performancePeersAnonym.add(learner_id);
+							else
+								performancePeersAnonym.add(learnerAnonymId);
+						}
+
+						subgroups_names.add("Higher progress");
 					}
 					
 					subgroups_student_ids.add(perfomancePeers);
