@@ -552,7 +552,7 @@ public class AggregateDB extends dbInterface {
             		   "where group_id=\'"+group_id+"\';";
             rs = stmt.executeQuery(query);
             while (rs.next()) {
-                String[] subgroup = new String[2];
+                String[] subgroup = new String[3];
                 subgroup[0] = rs.getString("subgroup_name");
                 subgroup[1] = rs.getString("subgroup_users");
                 subgroup[2] = rs.getString("type");
