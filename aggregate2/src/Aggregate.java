@@ -2038,23 +2038,30 @@ public class Aggregate {
 		res += "},";
 		res += "\n      user:{";
 		
-		//Added by @Jordan to iterate and add latest user preferences
-		System.out.println("User preferences to JSON");
-		for (Map.Entry<String, String> parameterInfo : this.userPreferences.entrySet()) {
-		    String parameterName = parameterInfo.getKey();
-		    String parameterValue = parameterInfo.getValue();
-		    res += ""+parameterName+":\""+parameterValue+"\",";
-		}
-		//Remove an additional comma which does not have to be there (in case there are no other userParameters to append after this
-		if(this.userPreferences.size()>0 && (userParameters==null || (userParameters!=null && userParameters[0]==null))){
-			res=res.substring(0, res.length()-1);
-		}
+		Map<String, String> userParameterMap = new HashMap<String, String>();
 		
 		if (userParameters != null) {
-			if (userParameters[0] != null)
-				res += userParameters[0];
+			if (userParameters[0] != null) {
+				String[] userParams = userParameters[0].split(",");
+				for(String param:userParams) {
+					String[] keyValue = param.split(":");
+					userParameterMap.put(keyValue[0], keyValue[1]);
+				}
+			}
 		}
-
+		
+		for (Map.Entry<String, String> parameterInfo : this.userPreferences.entrySet()) {
+		    String parameterName = parameterInfo.getKey();
+		    String parameterValue = "\"" + parameterInfo.getValue() + "\"";
+		    userParameterMap.put(parameterName, parameterValue);
+		}
+		
+		String joinedUserParameterString = userParameterMap.
+				entrySet().stream().
+				map(str -> str.toString().replace("=", ":")).collect(Collectors.joining(","));
+		
+		res += joinedUserParameterString;
+				
 		res += "}";
 		res += "\n    }";
 		res += "\n  }";
