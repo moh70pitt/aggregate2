@@ -480,7 +480,7 @@ public class AggregateDB extends dbInterface {
         try {
             stmt = conn.createStatement();
             query = "INSERT INTO ent_tracking (datentime, user_id, session_id, group_id, action, comment) values ("
-                    + "now(), '"
+                    + "now(3), '"
                     + usr
                     + "','"
                     + sid
