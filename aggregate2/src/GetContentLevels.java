@@ -96,6 +96,9 @@ public class GetContentLevels extends HttpServlet {
 			String updatesm = request.getParameter("updatesm");
 			String computeGroupLevelsStr = request.getParameter("computeGroupLevels");
 			boolean computeGroupLevels = computeGroupLevelsStr != null && computeGroupLevelsStr.equals("true");
+			
+			String removeZeroProgressUsersStr = request.getParameter("removeZeroProgressUsers");
+			boolean removeZeroProgressUsers = removeZeroProgressUsersStr != null && removeZeroProgressUsersStr.contentEquals("true");
 
 			// if problems to get the variables, defaults are nmodels=-1 (retrieve all),
 			// top=3
@@ -130,7 +133,7 @@ public class GetContentLevels extends HttpServlet {
 
 				// Get stores models for class peers
 				time1 = Calendar.getInstance().getTimeInMillis();
-				aggregate.fillClassLevels(cm.agg_include_null_users.equalsIgnoreCase("yes"), computeGroupLevels);
+				aggregate.fillClassLevels(cm.agg_include_null_users.equalsIgnoreCase("yes"), removeZeroProgressUsers, computeGroupLevels);
 				if (verbose)
 					System.out.println("Get class levels         " + (Calendar.getInstance().getTimeInMillis() - time1));
 
@@ -167,7 +170,7 @@ public class GetContentLevels extends HttpServlet {
 
 				time1 = Calendar.getInstance().getTimeInMillis();
 				
-				aggregate.fillClassLevels(usr, cm.agg_include_null_users.equalsIgnoreCase("yes"), computeGroupLevels);
+				aggregate.fillClassLevels(usr, cm.agg_include_null_users.equalsIgnoreCase("yes"), removeZeroProgressUsers, computeGroupLevels);
 				if (verbose)
 					System.out.println("Get class levels         " + (Calendar.getInstance().getTimeInMillis() - time1));
 				

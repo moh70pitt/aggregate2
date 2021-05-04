@@ -641,14 +641,14 @@ public class Aggregate {
 	
 	// Get the precomputed models at level of content and topics for each
 	// student in the list
-	public void fillClassLevels(boolean includeNullStudents, boolean considerAllModelsInCourse) {
-		fillClassLevels(null, includeNullStudents, considerAllModelsInCourse);
+	public void fillClassLevels(boolean includeNullStudents, boolean removeZeroProgressStudents, boolean considerAllModelsInCourse) {
+		fillClassLevels(null, includeNullStudents, removeZeroProgressStudents, considerAllModelsInCourse);
 	}
 
 	// Get the precomputed models at level of content and topics for each
 	// student in the list
 	// set usr to null to get all, or a user is to get only the user model
-	public void fillClassLevels(String usr, boolean includeNullStudents, boolean considerAllModelsInCourse) {
+	public void fillClassLevels(String usr, boolean includeNullStudents, boolean removeZeroProgressStudents, boolean considerAllModelsInCourse) {
 		if (class_list == null || class_list.size() == 0) {
 			return;
 		}
@@ -681,6 +681,20 @@ public class Aggregate {
 				String model4kc = models[2];
 				if (model4topics != null && model4topics.length() > 0) {
 					HashMap<String, double[]> learner_topic_levels = formatLevels(model4topics, nTopicLevels, false);
+					
+					if(removeZeroProgressStudents && !learnerid.equalsIgnoreCase(usr)) {
+						
+						boolean hasProgress = learner_topic_levels
+							.values().stream()
+							.anyMatch(arr -> Arrays.stream(arr).anyMatch(value -> value > 0));
+			
+						if(!hasProgress) {
+							i.remove();
+							continue;
+						}
+						
+					}
+					
 					peers_topic_levels.put(learnerid, learner_topic_levels);
 				}
 				if (model4content != null && model4content.length() > 0) {
