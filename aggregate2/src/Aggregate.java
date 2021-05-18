@@ -638,23 +638,18 @@ public class Aggregate {
 		// score = 0.0;
 		return score;
 	}
-	
-	// Get the precomputed models at level of content and topics for each
-	// student in the list
-	public void fillClassLevels(boolean includeNullStudents, boolean removeZeroProgressStudents, boolean considerAllModelsInCourse) {
-		fillClassLevels(null, includeNullStudents, removeZeroProgressStudents, considerAllModelsInCourse);
-	}
 
 	// Get the precomputed models at level of content and topics for each
 	// student in the list
-	// set usr to null to get all, or a user is to get only the user model
-	public void fillClassLevels(String usr, boolean includeNullStudents, boolean removeZeroProgressStudents, boolean considerAllModelsInCourse) {
-		if (class_list == null || class_list.size() == 0) {
+	// Pass computePeerLevels as true to get all, or false to get only the user model
+	public void fillClassLevels(boolean includeNullStudents, boolean removeZeroProgressStudents, boolean computePeerLevels) {
+		if (this.class_list == null || this.class_list.size() == 0) {
 			return;
 		}
-		peers_topic_levels = new HashMap<String, Map<String, double[]>>();
-		peers_content_levels = new HashMap<String, Map<String, double[]>>();
-		peers_kc_levels = new HashMap<String, Map<String, double[]>>();
+		this.peers_topic_levels = new HashMap<String, Map<String, double[]>>();
+		this.peers_content_levels = new HashMap<String, Map<String, double[]>>();
+		this.peers_kc_levels = new HashMap<String, Map<String, double[]>>();
+		
 		openDBConnections();
 		// HashMap<String, String[]> precomp_models = agg_db.getPrecomputedModels(cid,
 		// usr);
@@ -662,15 +657,15 @@ public class Aggregate {
 		
 		HashMap<String, String[]> precomp_models = null; 
 		
-		if(considerAllModelsInCourse) {
-			precomp_models = agg_db.getComputedModelsInCourse(cid);
+		if(computePeerLevels) {
+			precomp_models = this.agg_db.getComputedModelsInCourse(this.cid);
 		} else {
-			precomp_models = agg_db.getComputedModels(cid, usr);
+			precomp_models = this.agg_db.getComputedModels(this.cid, this.usr);
 		}
 		
 		// for(String[] learner: class_list){
 		// System.out.println("total students: "+class_list.size());
-		for (Iterator<String[]> i = class_list.iterator(); i.hasNext();) {
+		for (Iterator<String[]> i = this.class_list.iterator(); i.hasNext();) {
 			String[] learner = i.next();
 
 			String learnerid = learner[0]; // the user login (username)
@@ -680,9 +675,9 @@ public class Aggregate {
 				String model4content = models[1];
 				String model4kc = models[2];
 				if (model4topics != null && model4topics.length() > 0) {
-					HashMap<String, double[]> learner_topic_levels = formatLevels(model4topics, nTopicLevels, false);
+					HashMap<String, double[]> learner_topic_levels = formatLevels(model4topics, this.nTopicLevels, false);
 					
-					if(removeZeroProgressStudents && !learnerid.equalsIgnoreCase(usr)) {
+					if(removeZeroProgressStudents && !learnerid.equalsIgnoreCase(this.usr)) {
 						
 						boolean hasProgress = learner_topic_levels
 							.values().stream()
@@ -695,41 +690,41 @@ public class Aggregate {
 						
 					}
 					
-					peers_topic_levels.put(learnerid, learner_topic_levels);
+					this.peers_topic_levels.put(learnerid, learner_topic_levels);
 				}
 				if (model4content != null && model4content.length() > 0) {
 					if (learnerid.equalsIgnoreCase(this.usr)) {
 						// userContentSequences = new HashMap<String, String>();
-						HashMap<String, double[]> learner_content_levels = formatLevels(model4content, nContentLevels,
+						HashMap<String, double[]> learner_content_levels = formatLevels(model4content, this.nContentLevels,
 								true);
-						peers_content_levels.put(learnerid, learner_content_levels);
+						this.peers_content_levels.put(learnerid, learner_content_levels);
 					} else {
-						HashMap<String, double[]> learner_content_levels = formatLevels(model4content, nContentLevels,
+						HashMap<String, double[]> learner_content_levels = formatLevels(model4content, this.nContentLevels,
 								false);
-						peers_content_levels.put(learnerid, learner_content_levels);
+						this.peers_content_levels.put(learnerid, learner_content_levels);
 					}
 
 				}
 				if (model4kc != null && model4kc.length() > 0) {
-					HashMap<String, double[]> learner_kc_levels = formatLevels(model4kc, nKCLevels, false);
-					peers_kc_levels.put(learnerid, learner_kc_levels);
+					HashMap<String, double[]> learner_kc_levels = formatLevels(model4kc, this.nKCLevels, false);
+					this.peers_kc_levels.put(learnerid, learner_kc_levels);
 				}
 			} else {
 				// take the non-activity users out, but leave the current user
-				if (!includeNullStudents && !learnerid.equalsIgnoreCase(usr))
+				if (!includeNullStudents && !learnerid.equalsIgnoreCase(this.usr))
 					i.remove();
 			}
 
 		}
 		closeDBConnections();
 		// @@@@ considering moving this out of here
-		if (cm.agg_kcmap) {
+		if (this.cm.agg_kcmap) {
 			computeConceptCounts();
 		}
 
 	}
 
-	public void computeGroupLevels(boolean includeNullStudents, int top) {
+	public void computeGroupLevels(int top) {
 		if (this.topN != -1)
 			top = topN;
 		orderClassByProgress();

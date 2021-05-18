@@ -97,8 +97,12 @@ public class GetContentLevels extends HttpServlet {
 			String computeGroupLevelsStr = request.getParameter("computeGroupLevels");
 			boolean computeGroupLevels = computeGroupLevelsStr != null && computeGroupLevelsStr.equals("true");
 			
+			boolean includeNullUsers = cm.agg_include_null_users.equalsIgnoreCase("yes");
+			
 			String removeZeroProgressUsersStr = request.getParameter("removeZeroProgressUsers");
 			boolean removeZeroProgressUsers = removeZeroProgressUsersStr != null && removeZeroProgressUsersStr.contentEquals("true");
+			
+			
 
 			// if problems to get the variables, defaults are nmodels=-1 (retrieve all),
 			// top=3
@@ -133,12 +137,12 @@ public class GetContentLevels extends HttpServlet {
 
 				// Get stores models for class peers
 				time1 = Calendar.getInstance().getTimeInMillis();
-				aggregate.fillClassLevels(cm.agg_include_null_users.equalsIgnoreCase("yes"), removeZeroProgressUsers, computeGroupLevels);
+				aggregate.fillClassLevels(includeNullUsers, removeZeroProgressUsers, true);
 				if (verbose)
 					System.out.println("Get class levels         " + (Calendar.getInstance().getTimeInMillis() - time1));
 
 				time1 = Calendar.getInstance().getTimeInMillis();
-				aggregate.computeGroupLevels(false, top);
+				aggregate.computeGroupLevels(top);
 				if (verbose)
 					System.out.println("Compute group levels     " + (Calendar.getInstance().getTimeInMillis() - time1));
 
@@ -170,12 +174,12 @@ public class GetContentLevels extends HttpServlet {
 
 				time1 = Calendar.getInstance().getTimeInMillis();
 				
-				aggregate.fillClassLevels(usr, cm.agg_include_null_users.equalsIgnoreCase("yes"), removeZeroProgressUsers, computeGroupLevels);
+				aggregate.fillClassLevels(includeNullUsers, removeZeroProgressUsers, computeGroupLevels);
 				if (verbose)
 					System.out.println("Get class levels         " + (Calendar.getInstance().getTimeInMillis() - time1));
 				
 				if(computeGroupLevels) {
-					aggregate.computeGroupLevels(cm.agg_include_null_users.equalsIgnoreCase("yes"), top);
+					aggregate.computeGroupLevels(top);
 				}
 				
 				// compute sequencing
