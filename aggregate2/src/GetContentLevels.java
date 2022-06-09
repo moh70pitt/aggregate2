@@ -102,8 +102,10 @@ public class GetContentLevels extends HttpServlet {
 			String removeZeroProgressUsersStr = request.getParameter("removeZeroProgressUsers");
 			boolean removeZeroProgressUsers = removeZeroProgressUsersStr != null && removeZeroProgressUsersStr.contentEquals("true");
 			
+			String aggUmInterfaceKey = request.getParameter("aggKey");
+			cm.agg_uminterface_key = aggUmInterfaceKey != null ? aggUmInterfaceKey:cm.agg_uminterface_key;
 			
-
+			
 			// if problems to get the variables, defaults are nmodels=-1 (retrieve all),
 			// top=3
 			int n = -1; // this variable controls how many models will be retrieved

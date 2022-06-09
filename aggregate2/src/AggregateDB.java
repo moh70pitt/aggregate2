@@ -1084,13 +1084,11 @@ public class AggregateDB extends dbInterface {
         		         "JOIN ent_user_preferences pref ON latest.parameter_name =pref.parameter_name "+
         		         "AND latest.latest_date =pref.datetime "+
         		         "WHERE user_id = '"+ userId + "' AND group_id='"+groupId+"' AND app_name='"+appName+"';";
-          //System.out.println(query);
+
           rs = stmt.executeQuery(query);
-          System.out.println("User preferences: ");
           while (rs.next()) {
               String parameterName = rs.getString("parameter_name");
               String parameterValue = rs.getString("parameter_value");
-              System.out.println(parameterName+": "+parameterValue);
               userPreferences.put(parameterName, parameterValue);
           }
           this.releaseStatement(stmt, rs);
@@ -1104,6 +1102,35 @@ public class AggregateDB extends dbInterface {
           this.releaseStatement(stmt, rs);
       }
 	  return userPreferences;
+  }
+
+  public Map<String,Map<String,String>> getLastGroupPreferences(String groupId, String appName) {
+	  Map<String,Map<String,String>> groupPreferences = new HashMap<String,Map<String,String>>();
+	  try {
+          stmt = conn.createStatement();
+          
+          String query = "SELECT pref.* FROM (SELECT user_id,parameter_name,MAX(datetime) AS latest_date FROM ent_user_preferences WHERE group_id='"+groupId+"' AND app_name='"+appName+"' GROUP BY user_id,parameter_name) latest "+
+        		         "JOIN ent_user_preferences pref ON latest.user_id = pref.user_id AND latest.parameter_name =pref.parameter_name "+
+        		         "AND latest.latest_date =pref.datetime "+
+        		         "WHERE group_id='"+groupId+"' AND app_name='"+appName+"';";
+          rs = stmt.executeQuery(query);
+          while (rs.next()) {
+        	  String userId = rs.getString("user_id");
+              String parameterName = rs.getString("parameter_name");
+              String parameterValue = rs.getString("parameter_value");
+              
+              groupPreferences.putIfAbsent(userId, new HashMap<String,String>());
+              groupPreferences.get(userId).put(parameterName,parameterValue);
+          }
+          this.releaseStatement(stmt, rs);
+          
+      } catch (SQLException ex) {
+          this.releaseStatement(stmt, rs);
+          ex.printStackTrace();
+      } finally {
+          this.releaseStatement(stmt, rs);
+      }
+	  return groupPreferences;
   }
   
   

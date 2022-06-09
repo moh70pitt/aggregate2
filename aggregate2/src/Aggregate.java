@@ -141,9 +141,11 @@ public class Aggregate {
 	private String userManualFile = "";
 	
 	private HashMap<String,String> userPreferences = new HashMap<String,String>();
-
+	private Map<String,Map<String,String>> groupPreferences;
 	
 	private List<String> global_new_badge_id = new ArrayList<>();
+
+	
 
 	/**
 	 * The constructor load the course structure and content from DB and compute the
@@ -216,6 +218,7 @@ public class Aggregate {
 		processParameters(agg_db.getParameters(usr, grp));
 		
 		this.userPreferences = agg_db.getLastUserPreferences(this.usr, this.grp, "MasteryGrids");
+		this.groupPreferences = agg_db.getLastGroupPreferences(this.grp, "MasteryGrids");
 
 		class_list = um_interface.getClassList(grp, cm.agg_uminterface_key);
 		if (class_list == null) {
@@ -2191,6 +2194,26 @@ public class Aggregate {
 
 		return kcs;
 	}
+	
+	public String genJSONLearnerPreferences(String student) {
+		StringBuilder builder = new StringBuilder();
+		
+		builder.append("  preferences:[\n");
+		
+		Map<String, String> userPreference = this.groupPreferences.get(student);
+		
+		if(userPreference != null) {
+			for(Entry<String,String> entry:userPreference.entrySet()) {
+				builder.append("		{")
+					   .append(entry.getKey()).append(":\"")
+					   .append(entry.getValue()).append("\"},\n");
+			}
+			builder.deleteCharAt(builder.length()-2);
+		}
+
+		builder.append("   ]");
+		return builder.toString();
+	}
 
 	public String genJSONLearnerState(String student) {
 
@@ -2635,7 +2658,8 @@ public class Aggregate {
 				ishidden = "true";
 			if (c < n - 1 || learner[0].equalsIgnoreCase(usr) || n == -1) {
 				learners += "{\n  id:\"" + (learner[0].equalsIgnoreCase(usr) ? learner[0] : learner[3]) + "\",name:\""
-						+ learner[1] + "\",isHidden:" + ishidden + ",\n  " + genJSONLearnerState(learner[0]) + "\n},\n";
+						+ learner[1] + "\",isHidden:" + ishidden + ",\n  " + genJSONLearnerState(learner[0]) + ",\n " +
+						genJSONLearnerPreferences(learner[0]) + "\n},\n";
 			}
 			c++;
 		}
