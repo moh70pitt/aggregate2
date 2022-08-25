@@ -57,4 +57,12 @@
     <servlet-name>UserPreference</servlet-name>
     <url-pattern>/UserPreference</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <servlet-name>GetSummaryData</servlet-name>
+    <servlet-class>GetSummaryData</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>GetSummaryData</servlet-name>
+    <url-pattern>/GetSummaryData</url-pattern>
+  </servlet-mapping>
 </web-app>
