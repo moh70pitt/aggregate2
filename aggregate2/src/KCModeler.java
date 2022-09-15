@@ -54,6 +54,7 @@ public class KCModeler {
 //	private static final String bnFolder = "bn";
 	
 	private String conceptLevelsServiceURL = "http://pawscomp2.sis.pitt.edu/cbum/ReportManager";
+//	private String conceptLevelsServiceURL = "http://localhost:8080/cbum/ReportManager";
 	
 	
 	
@@ -399,12 +400,6 @@ public class KCModeler {
 			HashMap<String, Double> singleKCIdToBNKnowledge){
 		try {
 			if (verbose) System.out.println("Compute combined KC levels...");
-			if (verbose){
-				System.out.print("\tReceived activity HashMap:");
-				for (Map.Entry<String, Activity> a : allActivities.entrySet())
-					System.out.print(a.getKey() + ",");
-				System.out.println("\n");
-			}
 			
 			HashMap<String, double[]> res = new HashMap<String, double[]>();
 			// 1 for each KC, count how many activities which contributes there are, and how many has been completed by student
@@ -441,18 +436,12 @@ public class KCModeler {
 						nOverlapAct++;
 						if (verbose) System.out.print("\t\t\tIn current list of all activities! ");
 						double[] levels = a.getLevels(); // (K,P,A,S,C,AN,L,T,Sub) knowledge,progress,N attempts, success rate, completion, annotations, likes, time, subactivities 
-						if (verbose){
-							System.out.print("levels:");
-							for (double l : levels)
-								System.out.print(l + ",");
-							System.out.println();
-						}
+
 						if(levels != null && levels.length>1){
 							if(levels[3] > -1) nCntTried++;
 							// check if progress is 1
 							if(((int)levels[1]) == 1){
 								nCntDone++; // increment counter of content done
-								if (verbose) System.out.println("\t\t\tlevels[1]=1!");
 							}
 							nAttempts += levels[2];
 							if(levels[3] > -1) sr += levels[3];
@@ -759,7 +748,6 @@ public class KCModeler {
 			if(sr>0.0) sr = sr/nonNullActivities;//Added by Jordan, it gets average success rate, as in the previous for loop they were only summed up
 			if(lastKsr>=0.0) lastKsr = lastKsr/nonNullLastKActivities;
 			if(lastKnAttempts>=0) lastKnAttempts = lastKnAttempts/nonNullLastKActivities;
-			//Added by @Jordan
 			System.out.println("Last k success rate for "+kcName+" : "+lastKsr+", avg n of attempts: "+lastKnAttempts);
 			
 			kcCounts[0] = contents.size();
@@ -791,13 +779,20 @@ public class KCModeler {
 			double singleK =  kcCounts[1] / div1;
 			// replace singleK with the K of the concept reported by CBUM
 //			if(useCBUM && cbumK != null && cbumK.size() > 0){
-			Double kcK = cbumK.get(kc.getIdName());
-			if(kcK != null){
-				singleK = kcK;
-				//System.out.println(kc.getIdName()+ " Kc level: "+singleK);
-			}else{
-				System.out.println(kc.getIdName()+ " it is not provided by CUMULATE");
+			try {
+				Double kcK = cbumK.get(kc.getIdName());
+				
+				if(kcK != null){
+					singleK = kcK;
+					//System.out.println(kc.getIdName()+ " Kc level: "+singleK);
+				}else{
+					System.out.println(kc.getIdName()+ " it is not provided by CUMULATE");
+				}
+			} catch(Exception e) {
+				e.printStackTrace();
 			}
+			
+			
 			
 			
 			//if(countKCGroups>1) levels[0] = (kcCounts[3] / div2 + singleK) / 2.0; // knowledge is average of content covered and connections done
@@ -918,6 +913,15 @@ public class KCModeler {
 						+ URLEncoder.encode(grp, "UTF-8"));
 
 			}
+			
+			if (domain.equalsIgnoreCase("py")) {
+				url = new URL(conceptLevelsServiceURL
+						+ "?typ=con&dir=out&frm=xml&app=41&dom=py"
+						+ "&usr=" + URLEncoder.encode(usr, "UTF-8") + "&grp="
+						+ URLEncoder.encode(grp, "UTF-8"));
+
+			}
+			
 			if (url != null)
 				user_concept_knowledge_levels = processUserKnowledgeReport(url);
 			System.out.println(url.toString());
@@ -955,15 +959,12 @@ public class KCModeler {
 						if (cogLevelNode.getNodeType() == Node.ELEMENT_NODE) {
 							Element cogLevel = (Element) cogLevelNode;
 							if (getTagValue("name", cogLevel).trim().equals(
-									"application")) {//Code added by @Jordan for testing purposes
-									//"comprehension")) {
+									"application")) {
 
 								double level = 0.0;
-								level = Double.parseDouble(getTagValue("value",
-										cogLevel).trim());
+								level = Double.parseDouble(getTagValue("value", cogLevel).trim());
 								
-								userKnowledgeMap.put(
-										getTagValue("name", eElement), level);
+								userKnowledgeMap.put(getTagValue("name", eElement), level);
 								//System.out.println("Name from xml: "+getTagValue("name", eElement)+" level: "+level);
 							}
 						}

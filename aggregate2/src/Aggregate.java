@@ -82,6 +82,9 @@ public class Aggregate {
 
 	public String[] groupParameters; // visualization, services
 	public String[] userParameters; // visualization, services
+	
+	public Map<String, String> userVisParameterMap; 
+	public Map<String, String> groupVisParameterMap;
 
 	// proactive recommendation scores per content and per topic
 	public HashMap<String, Double> contentSequencingScores;
@@ -376,8 +379,7 @@ public class Aggregate {
 		// storePrecomputedModel(usr);
 		storeComputedModel(usr);
 	}
-
-	//
+	
 	// computes user levels aggregating by topics and content
 	public void computeUserLevels(String usr, String grp, String sid, String cid, String domain) {
 		if (usr == null || domain == null || usr.length() == 0 || domain.length() == 0)
@@ -387,23 +389,60 @@ public class Aggregate {
 		userContentLevels = new HashMap<String, double[]>();
 		userKCLevels = new HashMap<String, double[]>();
 		userContentSequences = new HashMap<String, String>();
+		
 
-		// fill the hash map with the knowledge and progress computations from UM
-		// interface
-		// contentSummary, each double[]: knowledge, progress, attempts/loads, success
-		// rate, completion, other 1, other 2
-		long time1 = Calendar.getInstance().getTimeInMillis();
-		HashMap<String, Activity> hashMapActivity = um_interface.getContentSummaryV2(usr, grp, sid, cid, domain,
+		// fill the hash map with the knowledge(see note below) and progress computations from UM interface
+		// contentSummary, each double[]: knowledge(see note below), progress, attempts/loads, success, rate, completion, other 1, other 2
+		// Note: knowledge is not computed through um_interface, it is set to 0.
+		HashMap<String, Activity> contentSummaryMap = um_interface.getContentSummaryV2(usr, grp, sid, cid, domain,
 				contentList, providers, null, null);
-		for (Map.Entry<String, Activity> act : hashMapActivity.entrySet()) {
+		
+		// COMPUTE LEVELS FOR KCs
+		// Knowledge of each item is aggregated based on knowledge in related KCs (if userKCLevels is computed)
+		if (cm.agg_kcmap) {
+			System.out.println("Entered to KC estimation...");
+			KCModeler kcModeler = new KCModeler(usr, domain, cid, singleKCList, groupedKCList, contentList,
+					cm.agg_kcmap_method, domain, cm.servletSource.getServletContext(), nKCLevels);
+
+			System.out.println("agg_kcmap_method: "+cm.agg_kcmap_method);
+			if(cm.agg_kcmap_method.equalsIgnoreCase("naive")){
+				userKCLevels = kcModeler.computeNaiveKCModel(contentSummaryMap, domain);
+			}else{
+				if(cm.agg_kcmap_method.equalsIgnoreCase("cumulate")){
+					System.out.println("verbose: "+verbose);
+					userKCLevels = kcModeler.computeCUMULATEKCModel(contentSummaryMap, domain, grp);
+					
+				}
+			}
+			
+			// cskamil TODO: knowledge estimates should be done based on a parameter
+			for(Map.Entry<String, Activity> contentEntry : contentSummaryMap.entrySet()) {
+				double contentAttempts = contentEntry.getValue().getLevels()[2];
+				if(contentAttempts > 0.0) { // Calculate estimates for only attempted content
+					String[] contentArr = contentList.get(contentEntry.getKey());
+					
+					if(!contentArr[6].trim().isEmpty()) {
+						String[] contentKCs = contentArr[6].split(",");
+						
+						double totalKCKnowledge = 0.0;
+						
+						for(String KC: contentKCs) {
+							totalKCKnowledge += userKCLevels.get(KC)[0];
+						}
+						
+						contentEntry.getValue().getLevels()[0] = totalKCKnowledge/contentKCs.length;
+					} else {
+						System.out.println("No KC for content: " + contentEntry);
+					}
+				}
+			}
+		}
+		
+		for (Map.Entry<String, Activity> act : contentSummaryMap.entrySet()) {
 			userContentLevels.put(act.getKey(), act.getValue().getLevels());
 			userContentSequences.put(act.getKey(), act.getValue().getAttemptsResSeq());
 		}
-		// userContentLevels = um_interface.getContentSummary(usr, grp, sid, cid,
-		// domain, contentList, providers, null);
-
-		if (verbose)
-			System.out.println("  Get all form UM   " + (Calendar.getInstance().getTimeInMillis() - time1));
+		
 
 		// COMPUTE AGGREGATE LEVELS FOR TOPICS
 		for (String[] topic : topicList) {
@@ -445,73 +484,10 @@ public class Aggregate {
 				}
 			userTopicLevels.put(topic[0], kpvalues);
 		}
-		// TODO:
-		// @@@@ JULIO
-		// COMPUTE LEVELS FOR KCs
-		if (cm.agg_kcmap) {
-			System.out.println("Entered to KC estimation...");
-			KCModeler kcModeler = new KCModeler(usr, domain, cid, singleKCList, groupedKCList, contentList,
-					cm.agg_kcmap_method, domain, cm.servletSource.getServletContext(), nKCLevels);
-
-			// Bayesian model
-			// if(cm.agg_kcmap_method.equalsIgnoreCase("BN")){
-			// // 1. get the last computed model for KC, and its last date
-			// HashMap<String, String[]> allLastModels = agg_db.getComputedModels(cid, usr);
-			// String[] userLastModel = allLastModels.get(usr);
-			// String lastUpdateDate = null;
-			// HashMap<String, double[]> lastModel = nullKCLevels();
-			// if(userLastModel != null && userLastModel[2] != null &&
-			// userLastModel[2].length() > 0){
-			// lastUpdateDate = userLastModel[3];
-			// lastModel = formatLevels(userLastModel[2], nKCLevels, false);
-			// }
-			//
-			//
-			// // 2. if the model contains kcs (not empty string), then call
-			// getContentSummaryV2 passing date, otherwise, pass null date
-			// //HashMap<String, Activity> lastActivity =
-			// um_interface.getContentSummaryV2(usr, grp, sid, cid, domain, null, providers,
-			// null, lastUpdateDate);
-			// // @@@@ HERE WE CAN ADD THE ACTIVITIES IN ORDER
-			// ArrayList<Attempt> lastAttempts = um_interface.getLastContentActivity(usr,
-			// grp, sid, cid, domain, contentList, providers, null, (lastUpdateDate != null
-			// ? lastUpdateDate : "2016-01-01"));
-			// //System.out.println("####### ###### "+cm.agg_kcmap_method);
-			// //userKCLevels = kcModeler.computeKCModel(lastUpdateDate, lastModel,
-			// lastAttempts);
-			// userKCLevels = kcModeler.computeKCModel((lastUpdateDate != null ?
-			// lastUpdateDate : "2016-01-01"), lastModel, hashMapActivity, lastAttempts);
-			// }else if(cm.agg_kcmap_method.equalsIgnoreCase("BNComp")){
-			// // 1.
-			//
-			// String lastUpdateDate = "2016-01-01";
-			// HashMap<String, double[]> lastModel = nullKCLevels();
-			//
-			//
-			// // 2.
-			// ArrayList<Attempt> lastAttempts = um_interface.getLastContentActivity(usr,
-			// grp, sid, cid, domain, contentList, providers, null, lastUpdateDate);
-			//
-			// userKCLevels = kcModeler.computeKCModelComparison(lastUpdateDate, lastModel,
-			// hashMapActivity, lastAttempts);
-			// this.recommendedActivitiesKCModeler = kcModeler.getRecommendedActivities();
-			//
-			//
-			// }else{ // use naive
-			
-			System.out.println("agg_kcmap_method: "+cm.agg_kcmap_method);
-			if(cm.agg_kcmap_method.equalsIgnoreCase("naive")){
-				userKCLevels = kcModeler.computeNaiveKCModel(hashMapActivity, domain);
-			}else{
-				if(cm.agg_kcmap_method.equalsIgnoreCase("cumulate")){
-					System.out.println("verbose: "+verbose);
-					userKCLevels = kcModeler.computeCUMULATEKCModel(hashMapActivity, domain, grp);
-					
-				}
-			}
-
-		}
-
+		
+		
+		
+		
 	}
 
 	// public void computeUserLevels2(String usr, String grp, String sid, String
@@ -666,6 +642,7 @@ public class Aggregate {
 			precomp_models = this.agg_db.getComputedModels(this.cid, this.usr);
 		}
 		
+		
 		// for(String[] learner: class_list){
 		// System.out.println("total students: "+class_list.size());
 		for (Iterator<String[]> i = this.class_list.iterator(); i.hasNext();) {
@@ -730,7 +707,13 @@ public class Aggregate {
 	public void computeGroupLevels(int top) {
 		if (this.topN != -1)
 			top = topN;
-		orderClassByProgress();
+		
+		if(doReportProgress()) {
+			orderClassByProgress();
+		} else {
+			orderClassByKnowledge();
+		}
+		
 		computeSubGroupsLevels(true, true, top);
 
 		// comment following lines
@@ -738,6 +721,14 @@ public class Aggregate {
 		// computeAverageTopStudentsTopicLevels(top);
 		// computeAverageClassContentLevels();
 		// computeAverageTopStudentsContentLevels(top);
+	}
+	
+	public boolean doReportProgress() {
+		String grpDefaultReportLevel = getGroupVisParameterMap().get("defValRepLvlId");
+		String userDefaultReportLevel = getUserVisParameterMap().get("defValRepLvlId");
+		String defaultReportLevel = userDefaultReportLevel != null ? userDefaultReportLevel:grpDefaultReportLevel;
+		
+		return defaultReportLevel == null || defaultReportLevel.equals("\"p\"");
 	}
 
 	//
@@ -979,6 +970,9 @@ public class Aggregate {
 					
 					ArrayList<String> perfomancePeers = new ArrayList<String>();
 					ArrayList<String> performancePeersAnonym = new ArrayList<String>();
+					
+					//cskamil: TODO: The names below (e.g., higher performance/progress was given without thinking
+					// the difference between progress and performance. Needs to be changed. 
 					
 					if(subgroupName.equals("higher_performance")){
 						for (int j = 0; j < halfIndex; j++) {
@@ -2022,7 +2016,7 @@ public class Aggregate {
 	public String genJSONHeader() {
 		String res = "{\n  version:\"0.0.3\",\n" + "  context:{ learnerId:\"" + usr + "\",group:{id:\"" + grp
 				+ "\",name:\"" + grp_name + "\"}},\n"
-				+ "  reportLevels:[{id:\"p\",name:\"Progress\"},{id:\"k\",name:\"Knowledge\"}],\n" + "  resources:[ \n";
+				+ "  reportLevels:[{id:\"p\",name:\"Progress\"},{id:\"k\",name:\"Performance\"}],\n" + "  resources:[ \n";
 		for (String[] r : resourceList) {
 			if (r[4] == null || r[4].length() < 3)
 				r[4] = "010";
@@ -2050,17 +2044,7 @@ public class Aggregate {
 		res += "},";
 		res += "\n      user:{";
 		
-		Map<String, String> userParameterMap = new HashMap<String, String>();
-		
-		if (userParameters != null) {
-			if (userParameters[0] != null) {
-				String[] userParams = userParameters[0].split(",");
-				for(String param:userParams) {
-					String[] keyValue = param.split(":");
-					userParameterMap.put(keyValue[0], keyValue[1]);
-				}
-			}
-		}
+		Map<String, String> userParameterMap = getUserVisParameterMap();
 		
 		for (Map.Entry<String, String> parameterInfo : this.userPreferences.entrySet()) {
 		    String parameterName = parameterInfo.getKey();
@@ -2079,6 +2063,46 @@ public class Aggregate {
 		res += "\n  }";
 		res += "\n}";
 		return res;
+	}
+	
+	private Map<String, String> getUserVisParameterMap() {
+		if(userVisParameterMap != null) {
+			return userVisParameterMap;
+		}
+		
+		userVisParameterMap = new HashMap<String, String>();
+		
+		if (userParameters != null) {
+			if (userParameters[0] != null) {
+				String[] userParams = userParameters[0].split(",");
+				for(String param:userParams) {
+					String[] keyValue = param.split(":");
+					userVisParameterMap.put(keyValue[0], keyValue[1]);
+				}
+			}
+		}
+		
+		return userVisParameterMap;
+	}
+	
+	private Map<String, String> getGroupVisParameterMap() {
+		if(groupVisParameterMap != null) {
+			return groupVisParameterMap;
+		}
+		
+		groupVisParameterMap = new HashMap<String, String>();
+		
+		if (groupParameters != null) {
+			if (groupParameters[0] != null) {
+				String[] userParams = groupParameters[0].split(",");
+				for(String param:userParams) {
+					String[] keyValue = param.split(":");
+					groupVisParameterMap.put(keyValue[0], keyValue[1]);
+				}
+			}
+		}
+		
+		return groupVisParameterMap;
 	}
 	
 	public String genJSONConfigProperties() {
