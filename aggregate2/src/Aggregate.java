@@ -148,8 +148,6 @@ public class Aggregate {
 	
 	private List<String> global_new_badge_id = new ArrayList<>();
 
-	
-
 	/**
 	 * The constructor load the course structure and content from DB and compute the
 	 * aggregated user model levels (progress and knowledge) if parameter updateUM
@@ -186,15 +184,16 @@ public class Aggregate {
 		} else {
 			this.cid = cid;
 		}
+
 		domain = agg_db.getDomain(cid);
 		System.out.println("Course domain: "+domain);
 		if (domain == null || domain.length() == 0) {
 			this.cid = agg_db.getCourseId(grp);
 			this.domain = "UNKNOWN";
 		}
+    
 		try {
 			um_interface = (UMInterface) Class.forName(cm.agg_uminterface_classname).newInstance();
-
 		} catch (Exception e) {
 			// @@@@ um_interface = new NullUMInterface();
 			e.printStackTrace();
@@ -202,7 +201,6 @@ public class Aggregate {
 
 		try {
 			rec_interface = (RecInterface) Class.forName(cm.agg_recinterface_classname).newInstance();
-
 		} catch (Exception e) {
 			// @@@@ um_interface = new NullUMInterface();
 			e.printStackTrace();
@@ -348,11 +346,11 @@ public class Aggregate {
 
 	public void openDBConnections() {
 		agg_db = new AggregateDB(cm.agg_dbstring, cm.agg_dbuser, cm.agg_dbpass);
-		agg_db.openConnection();
+		agg_db.connect();
 	}
 
 	public void closeDBConnections() {
-		agg_db.closeConnection();
+		agg_db.disconnect();
 	}
 
 	// REVIEW
@@ -1910,18 +1908,14 @@ public class Aggregate {
 	}
 
 	public boolean trackAction(String action, String comment) {
-		boolean connection_was_open = false;
-		try {
-			connection_was_open = !agg_db.conn.isClosed();
-		} catch (Exception e) {
-		}
+		boolean connection_was_open = !agg_db.isClosed();
 		boolean res = false;
 		if (!connection_was_open)
-			agg_db.openConnection();
+			agg_db.connect();
 		if (agg_db.insertTrackAction(usr, grp, sid, action, comment))
 			res = true;
 		if (!connection_was_open)
-			agg_db.closeConnection();
+			agg_db.disconnect();
 		return res;
 	}
 
