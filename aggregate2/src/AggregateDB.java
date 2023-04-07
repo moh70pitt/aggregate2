@@ -2,7 +2,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 public class AggregateDB extends DBConnection {
-  
+
   public static DecimalFormat df4 = new DecimalFormat("#.####");
 
   public AggregateDB(String url, String username, String password) {

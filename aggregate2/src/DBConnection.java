@@ -28,19 +28,23 @@ public class DBConnection {
   }
 
   public final boolean connect() {
-    try {
-      Class.forName("com.mysql.jdbc.Driver");
-      this.db = DriverManager.getConnection(url, username, password);
+    if (this.db == null)
+      try {
+        Class.forName("com.mysql.jdbc.Driver");
+        this.db = DriverManager.getConnection(url, username, password);
+        return true;
+      } catch (Exception exp) {
+        log(exp);
+        return false;
+      }
+    else
       return true;
-    } catch (Exception exp) {
-      log(exp);
-      return false;
-    }
   }
 
   public final boolean disconnect() {
     try {
       this.db.close();
+      this.db = null;
       return true;
     } catch (SQLException exp) {
       log(exp);
